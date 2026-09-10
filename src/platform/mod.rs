@@ -16,3 +16,6 @@ pub mod raspberry;
 
 #[cfg(feature = "raspberry")]
 pub mod framebuffer;
+
+#[cfg(feature = "raspberry")]
+pub mod touchscreen;

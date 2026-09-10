@@ -24,6 +24,9 @@ fn main() -> std::io::Result<()> {
     #[cfg(feature = "raspberry")]
     let mut platform = Raspberry::new()?;
 
+    #[cfg(feature = "raspberry")]
+    let mut touchscreen = platform::touchscreen::Touchscreen::open("/dev/input/event0")?;
+
     renderer.clear(0);
 
     if let Some(dirty) = renderer.take_dirty() {
@@ -37,6 +40,11 @@ fn main() -> std::io::Result<()> {
     loop {
         if platform.should_close() {
             break;
+        }
+
+        #[cfg(feature = "raspberry")]
+        for event in touchscreen.poll()? {
+            ui.handle_input(event);
         }
 
         platform.poll_events();
