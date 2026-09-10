@@ -14,6 +14,15 @@ impl Rect {
         Self::default()
     }
 
+    pub fn new(x: usize, y: usize, width: usize, height: usize) -> Self {
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
+    }
+
     pub fn is_empty(&self) -> bool {
         self.width == 0 || self.height == 0
     }
@@ -152,6 +161,16 @@ impl Renderer {
         }
     }
 
+    pub fn fill_rect(&mut self, x: usize, y: usize, width: usize, height: usize, color: u16) {
+        let x_end = (x + width).min(WIDTH);
+        let y_end = (y + height).min(HEIGHT);
+
+        for py in y..y_end {
+            for px in x..x_end {
+                self.pixel(px as i32, py as i32, color);
+            }
+        }
+    }
     pub fn rgb565(r: u8, g: u8, b: u8) -> u16 {
         let r = (r as u16 >> 3) << 11;
         let g = (g as u16 >> 2) << 5;
