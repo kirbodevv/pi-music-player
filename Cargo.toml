@@ -6,3 +6,7 @@ edition = "2024"
 [dependencies]
 libc = "0.2.189"
 minifb = "0.28.0"
+
+[features]
+desktop = []
+raspberry = []

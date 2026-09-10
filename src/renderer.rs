@@ -31,6 +31,10 @@ impl Renderer {
         self.pixels[y * WIDTH + x] = color;
     }
 
+    pub fn pixels(&self) -> &[u16] {
+        &self.pixels
+    }
+
     pub fn rect(&mut self, x: i32, y: i32, width: i32, height: i32, color: u16) {
         for py in y..y + height {
             for px in x..x + width {
