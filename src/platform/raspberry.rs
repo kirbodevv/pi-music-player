@@ -1,4 +1,4 @@
-#[path = "../framebuffer.rs"]
+#[path = "framebuffer.rs"]
 mod framebuffer;
 
 use framebuffer::Framebuffer;
