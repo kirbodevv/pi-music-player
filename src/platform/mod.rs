@@ -1,67 +1,18 @@
-use crate::platform;
+use crate::renderer::{Rect, Renderer};
+
+pub trait Platform {
+    fn present(&mut self, renderer: &Renderer, dirty: Rect) -> std::io::Result<()>;
+
+    fn poll_events(&mut self);
+
+    fn should_close(&self) -> bool;
+}
 
 #[cfg(feature = "desktop")]
-mod desktop;
+pub mod desktop;
 
 #[cfg(feature = "raspberry")]
-mod raspberry;
+pub mod raspberry;
 
-pub struct Platform {
-    backend: Backend,
-}
-
-enum Backend {
-    #[cfg(feature = "desktop")]
-    Desktop(desktop::DesktopPlatform),
-
-    #[cfg(feature = "raspberry")]
-    Raspberry(raspberry::RaspberryPlatform),
-}
-
-impl Platform {
-    pub fn new() -> Self {
-        Self {
-            backend: Backend::new(),
-        }
-    }
-
-    pub fn is_running(&mut self) -> bool {
-        match &mut self.backend {
-            #[cfg(feature = "desktop")]
-            Backend::Desktop(platform) => platform.is_running(),
-
-            #[cfg(feature = "raspberry")]
-            Backend::Raspberry(platform) => platform.is_running(),
-
-            _ => false,
-        }
-    }
-
-    pub fn present(&mut self, pixels: &[u16]) {
-        match &mut self.backend {
-            #[cfg(feature = "desktop")]
-            Backend::Desktop(platform) => platform.present(pixels),
-
-            #[cfg(feature = "raspberry")]
-            Backend::Raspberry(platform) => platform.present(pixels),
-
-            _ => {}
-        }
-    }
-}
-
-impl Backend {
-    fn new() -> Self {
-        #[cfg(feature = "desktop")]
-        {
-            return Backend::Desktop(desktop::DesktopPlatform::new());
-        }
-
-        #[cfg(feature = "raspberry")]
-        {
-            return Backend::Raspberry(raspberry::RaspberryPlatform::new());
-        }
-
-        panic!("Can't run on this platform");
-    }
-}
+#[cfg(feature = "raspberry")]
+pub mod framebuffer;

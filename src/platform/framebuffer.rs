@@ -3,7 +3,7 @@ use std::io;
 use std::os::fd::AsRawFd;
 use std::ptr;
 
-use crate::renderer::{HEIGHT, WIDTH};
+use crate::renderer::{HEIGHT, Rect, WIDTH};
 
 const FB_SIZE: usize = WIDTH * HEIGHT * 2;
 
@@ -37,10 +37,25 @@ impl Framebuffer {
         })
     }
 
-    pub fn present(&mut self, pixels: &[u16]) {
-        unsafe {
-            ptr::copy_nonoverlapping(pixels.as_ptr(), self.ptr, WIDTH * HEIGHT);
+    pub fn present(&mut self, pixels: &[u16], dirty: Rect) -> io::Result<()> {
+        if dirty.is_empty() {
+            return Ok(());
         }
+
+        let x_end = (dirty.x + dirty.width).min(WIDTH);
+        let y_end = (dirty.y + dirty.height).min(HEIGHT);
+
+        let width = x_end - dirty.x;
+
+        for y in dirty.y..y_end {
+            let offset = y * WIDTH + dirty.x;
+
+            unsafe {
+                ptr::copy_nonoverlapping(pixels.as_ptr().add(offset), self.ptr.add(offset), width);
+            }
+        }
+
+        Ok(())
     }
 }
 

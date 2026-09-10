@@ -1,19 +1,77 @@
 pub const WIDTH: usize = 480;
 pub const HEIGHT: usize = 320;
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Rect {
+    pub x: usize,
+    pub y: usize,
+    pub width: usize,
+    pub height: usize,
+}
+
+impl Rect {
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.width == 0 || self.height == 0
+    }
+
+    pub fn union(self, other: Rect) -> Rect {
+        if self.is_empty() {
+            return other;
+        }
+
+        if other.is_empty() {
+            return self;
+        }
+
+        let x1 = self.x.min(other.x);
+        let y1 = self.y.min(other.y);
+
+        let x2 = (self.x + self.width).max(other.x + other.width);
+        let y2 = (self.y + self.height).max(other.y + other.height);
+
+        Rect {
+            x: x1,
+            y: y1,
+            width: x2 - x1,
+            height: y2 - y1,
+        }
+    }
+
+    pub fn expand(self, amount: usize) -> Rect {
+        if self.is_empty() {
+            return self;
+        }
+
+        let x = self.x.saturating_sub(amount);
+        let y = self.y.saturating_sub(amount);
+
+        let right = (self.x + self.width + amount).min(WIDTH);
+        let bottom = (self.y + self.height + amount).min(HEIGHT);
+
+        Rect {
+            x,
+            y,
+            width: right - x,
+            height: bottom - y,
+        }
+    }
+}
+
 pub struct Renderer {
     pub pixels: Vec<u16>,
+    dirty: Rect,
 }
 
 impl Renderer {
     pub fn new() -> Self {
         Self {
             pixels: vec![0; WIDTH * HEIGHT],
+            dirty: Rect::empty(),
         }
-    }
-
-    pub fn clear(&mut self, color: u16) {
-        self.pixels.fill(color);
     }
 
     pub fn pixel(&mut self, x: i32, y: i32, color: u16) {
@@ -28,64 +86,77 @@ impl Renderer {
             return;
         }
 
-        self.pixels[y * WIDTH + x] = color;
-    }
+        let index = y * WIDTH + x;
 
-    pub fn pixels(&self) -> &[u16] {
-        &self.pixels
-    }
+        if self.pixels[index] != color {
+            self.pixels[index] = color;
 
-    pub fn rect(&mut self, x: i32, y: i32, width: i32, height: i32, color: u16) {
-        for py in y..y + height {
-            for px in x..x + width {
-                self.pixel(px, py, color);
-            }
+            self.dirty = self.dirty.union(Rect {
+                x,
+                y,
+                width: 1,
+                height: 1,
+            });
         }
     }
 
-    pub fn rect_outline(&mut self, x: i32, y: i32, width: i32, height: i32, color: u16) {
-        for px in x..x + width {
-            self.pixel(px, y, color);
-            self.pixel(px, y + height - 1, color);
+    pub fn clear_rect(&mut self, rect: Rect, color: u16) {
+        if rect.is_empty() {
+            return;
         }
 
-        for py in y..y + height {
-            self.pixel(x, py, color);
-            self.pixel(x + width - 1, py, color);
+        let x1 = rect.x.min(WIDTH);
+        let y1 = rect.y.min(HEIGHT);
+        let x2 = (rect.x + rect.width).min(WIDTH);
+        let y2 = (rect.y + rect.height).min(HEIGHT);
+
+        for y in y1..y2 {
+            let start = y * WIDTH + x1;
+            let end = y * WIDTH + x2;
+
+            for pixel in &mut self.pixels[start..end] {
+                *pixel = color;
+            }
+        }
+
+        self.dirty = self.dirty.union(Rect {
+            x: x1,
+            y: y1,
+            width: x2.saturating_sub(x1),
+            height: y2.saturating_sub(y1),
+        });
+    }
+
+    pub fn clear(&mut self, color: u16) {
+        self.pixels.fill(color);
+
+        self.dirty = Rect {
+            x: 0,
+            y: 0,
+            width: WIDTH,
+            height: HEIGHT,
+        };
+    }
+
+    pub fn mark_dirty(&mut self, rect: Rect) {
+        self.dirty = self.dirty.union(rect);
+    }
+
+    pub fn take_dirty(&mut self) -> Option<Rect> {
+        if self.dirty.is_empty() {
+            None
+        } else {
+            let dirty = self.dirty;
+            self.dirty = Rect::empty();
+            Some(dirty)
         }
     }
 
-    pub fn line(&mut self, mut x0: i32, mut y0: i32, x1: i32, y1: i32, color: u16) {
-        let dx = (x1 - x0).abs();
-        let sx = if x0 < x1 { 1 } else { -1 };
+    pub fn rgb565(r: u8, g: u8, b: u8) -> u16 {
+        let r = (r as u16 >> 3) << 11;
+        let g = (g as u16 >> 2) << 5;
+        let b = b as u16 >> 3;
 
-        let dy = -(y1 - y0).abs();
-        let sy = if y0 < y1 { 1 } else { -1 };
-
-        let mut error = dx + dy;
-
-        loop {
-            self.pixel(x0, y0, color);
-
-            if x0 == x1 && y0 == y1 {
-                break;
-            }
-
-            let e2 = 2 * error;
-
-            if e2 >= dy {
-                error += dy;
-                x0 += sx;
-            }
-
-            if e2 <= dx {
-                error += dx;
-                y0 += sy;
-            }
-        }
+        r | g | b
     }
-}
-
-pub fn rgb565(r: u8, g: u8, b: u8) -> u16 {
-    ((r as u16 >> 3) << 11) | ((g as u16 >> 2) << 5) | (b as u16 >> 3)
 }

@@ -1,24 +1,30 @@
-#[path = "framebuffer.rs"]
-mod framebuffer;
+use std::io;
 
-use framebuffer::Framebuffer;
+use crate::platform::Platform;
+use crate::renderer::{Rect, Renderer};
 
-pub struct RaspberryPlatform {
+use super::framebuffer::Framebuffer;
+
+pub struct Raspberry {
     framebuffer: Framebuffer,
 }
 
-impl RaspberryPlatform {
-    pub fn new() -> Self {
-        Self {
-            framebuffer: Framebuffer::open().expect("Failed to open /dev/fb1"),
-        }
+impl Raspberry {
+    pub fn new() -> io::Result<Self> {
+        Ok(Self {
+            framebuffer: Framebuffer::open()?,
+        })
+    }
+}
+
+impl Platform for Raspberry {
+    fn present(&mut self, renderer: &Renderer, dirty: Rect) -> io::Result<()> {
+        self.framebuffer.present(&renderer.pixels, dirty)
     }
 
-    pub fn is_running(&mut self) -> bool {
-        true
-    }
+    fn poll_events(&mut self) {}
 
-    pub fn present(&mut self, pixels: &[u16]) {
-        self.framebuffer.present(pixels);
+    fn should_close(&self) -> bool {
+        false
     }
 }

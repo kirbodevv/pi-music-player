@@ -8,5 +8,7 @@ libc = "0.2.189"
 minifb = "0.28.0"
 
 [features]
+default = ["desktop"]
+debug = []
 desktop = []
 raspberry = []
