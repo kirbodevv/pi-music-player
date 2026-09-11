@@ -1,7 +1,9 @@
+use crate::renderer::color::Color;
+
 use super::{HEIGHT, Renderer, WIDTH};
 
 impl Renderer {
-    pub fn fill_rect(&mut self, x: usize, y: usize, width: usize, height: usize, color: u16) {
+    pub fn fill_rect(&mut self, x: usize, y: usize, width: usize, height: usize, color: Color) {
         let x_end = (x + width).min(WIDTH);
         let y_end = (y + height).min(HEIGHT);
 
@@ -12,7 +14,7 @@ impl Renderer {
         }
     }
 
-    pub fn rect(&mut self, x: usize, y: usize, width: usize, height: usize, color: u16) {
+    pub fn rect(&mut self, x: usize, y: usize, width: usize, height: usize, color: Color) {
         if width == 0 || height == 0 {
             return;
         }
@@ -24,7 +26,7 @@ impl Renderer {
         self.line(x + width - 1, y, x + width - 1, y + height - 1, color);
     }
 
-    pub fn line(&mut self, mut x0: usize, mut y0: usize, x1: usize, y1: usize, color: u16) {
+    pub fn line(&mut self, mut x0: usize, mut y0: usize, x1: usize, y1: usize, color: Color) {
         let dx = (x1 as isize - x0 as isize).abs();
         let sx = if x0 < x1 { 1 } else { -1 };
 

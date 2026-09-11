@@ -2,6 +2,7 @@ use std::time::{Duration, Instant};
 use std::{io, thread};
 
 use crate::platform::Platform;
+use crate::renderer::color::Color;
 use crate::{renderer::Renderer, ui::Ui};
 
 pub struct App<P> {
@@ -43,7 +44,7 @@ impl<P: Platform> App<P> {
     }
 
     fn render(&mut self) -> io::Result<()> {
-        self.renderer.clear(0);
+        self.renderer.clear(Color::BLACK);
         self.ui.render(&mut self.renderer);
 
         if let Some(dirty) = self.renderer.take_dirty() {

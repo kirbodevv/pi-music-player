@@ -1,4 +1,4 @@
-use crate::renderer::Renderer;
+use crate::renderer::{Renderer, color::Color};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ButtonState {
@@ -12,8 +12,8 @@ pub struct Button {
     pub width: usize,
     pub height: usize,
 
-    pub color: u16,
-    pub pressed_color: u16,
+    pub color: Color,
+    pub pressed_color: Color,
 
     state: ButtonState,
 }
@@ -24,8 +24,8 @@ impl Button {
         y: usize,
         width: usize,
         height: usize,
-        color: u16,
-        pressed_color: u16,
+        color: Color,
+        pressed_color: Color,
     ) -> Self {
         Self {
             x,

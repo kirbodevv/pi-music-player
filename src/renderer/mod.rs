@@ -1,3 +1,6 @@
+use crate::renderer::color::Color;
+
+pub mod color;
 mod primitives;
 
 pub const WIDTH: usize = 480;
@@ -38,7 +41,9 @@ impl Renderer {
         &self.pixels
     }
 
-    pub fn clear(&mut self, color: u16) {
+    pub fn clear(&mut self, color: Color) {
+        let color = color.to_rgb565();
+
         for pixel in &mut self.pixels {
             *pixel = color;
         }
@@ -51,11 +56,12 @@ impl Renderer {
         });
     }
 
-    pub fn pixel(&mut self, x: usize, y: usize, color: u16) {
+    pub fn pixel(&mut self, x: usize, y: usize, color: Color) {
         if x >= WIDTH || y >= HEIGHT {
             return;
         }
 
+        let color = color.to_rgb565();
         let index = y * WIDTH + x;
 
         if self.pixels[index] == color {

@@ -1,6 +1,9 @@
 mod button;
 
-use crate::{platform::Event, renderer::Renderer};
+use crate::{
+    platform::Event,
+    renderer::{Renderer, color::Color},
+};
 
 use button::Button;
 
@@ -24,13 +27,13 @@ impl Ui {
         Self {
             screen: Screen::Launcher,
 
-            music_button: Button::new(40, 60, 180, 80, 0x07E0, 0x03E0),
+            music_button: Button::new(40, 60, 180, 80, Color::RED, Color::MAGENTA),
 
-            files_button: Button::new(260, 60, 180, 80, 0x001F, 0x0010),
+            files_button: Button::new(260, 60, 180, 80, Color::BLACK, Color::GRAY),
 
-            settings_button: Button::new(40, 180, 180, 80, 0xF800, 0x7800),
+            settings_button: Button::new(40, 180, 180, 80, Color::BLUE, Color::CYAN),
 
-            about_button: Button::new(260, 180, 180, 80, 0xFFE0, 0x7BE0),
+            about_button: Button::new(260, 180, 180, 80, Color::YELLOW, Color::WHITE),
         }
     }
 
@@ -43,7 +46,7 @@ impl Ui {
     }
 
     fn render_launcher(&self, renderer: &mut Renderer) {
-        renderer.clear(0x0000);
+        renderer.clear(Color::BLACK);
 
         self.music_button.render(renderer);
         self.files_button.render(renderer);
@@ -52,11 +55,11 @@ impl Ui {
     }
 
     fn render_music(&self, renderer: &mut Renderer) {
-        renderer.clear(0x0000);
+        renderer.clear(Color::BLACK);
     }
 
     fn render_settings(&self, renderer: &mut Renderer) {
-        renderer.clear(0x0000);
+        renderer.clear(Color::BLACK);
     }
     pub fn touch_down(&mut self, x: usize, y: usize) {
         match self.screen {
