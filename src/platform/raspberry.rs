@@ -1,18 +1,21 @@
 use std::io;
 
-use crate::platform::Platform;
+use crate::platform::touchscreen::Touchscreen;
+use crate::platform::{Event, Platform};
 use crate::renderer::{Rect, Renderer};
 
 use super::framebuffer::Framebuffer;
 
 pub struct Raspberry {
     framebuffer: Framebuffer,
+    touchscreen: Touchscreen,
 }
 
 impl Raspberry {
     pub fn new() -> io::Result<Self> {
         Ok(Self {
             framebuffer: Framebuffer::open()?,
+            touchscreen: Touchscreen::open("/dev/input/event0")?,
         })
     }
 }
@@ -22,7 +25,13 @@ impl Platform for Raspberry {
         self.framebuffer.present(&renderer.pixels(), dirty)
     }
 
-    fn poll_events(&mut self) {}
+    fn poll_events(&mut self) -> Vec<Event> {
+        let mut events = Vec::new();
+        for event in self.touchscreen.poll().unwrap() {
+            events.push(event);
+        }
+        events
+    }
 
     fn should_close(&self) -> bool {
         false

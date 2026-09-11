@@ -2,7 +2,7 @@ use std::io;
 
 use minifb::{Key, Window, WindowOptions};
 
-use crate::platform::Platform;
+use crate::platform::{Event, Platform};
 use crate::renderer::{HEIGHT, Rect, Renderer, WIDTH};
 
 pub struct Desktop {
@@ -59,7 +59,9 @@ impl Platform for Desktop {
             .map_err(io::Error::other)
     }
 
-    fn poll_events(&mut self) {}
+    fn poll_events(&mut self) -> Vec<Event> {
+        vec![]
+    }
 
     fn should_close(&self) -> bool {
         !self.window.is_open() || self.window.is_key_down(Key::Escape)

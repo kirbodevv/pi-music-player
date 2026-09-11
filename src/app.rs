@@ -4,15 +4,10 @@ use std::{io, thread};
 use crate::platform::Platform;
 use crate::{renderer::Renderer, ui::Ui};
 
-#[cfg(feature = "raspberry")]
-use crate::platform::touchscreen::Touchscreen;
-
 pub struct App<P> {
     platform: P,
     renderer: Renderer,
     ui: Ui,
-    #[cfg(feature = "raspberry")]
-    touchscreen: Touchscreen,
     next_frame: Instant,
     running: bool,
 }
@@ -26,8 +21,6 @@ impl<P: Platform> App<P> {
             renderer: Renderer::new(),
             ui: Ui::new(),
             next_frame: Instant::now(),
-            #[cfg(feature = "raspberry")]
-            touchscreen: Touchscreen::open("/dev/input/event0").unwrap(),
             running: true,
         }
     }
@@ -43,13 +36,9 @@ impl<P: Platform> App<P> {
     }
 
     fn update(&mut self) -> io::Result<()> {
-        #[cfg(feature = "raspberry")]
-        {
-            for event in self.touchscreen.poll()? {
-                self.ui.handle_input(event);
-            }
+        for event in self.platform.poll_events() {
+            self.ui.handle_input(event);
         }
-
         Ok(())
     }
 

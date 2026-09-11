@@ -1,7 +1,6 @@
 mod button;
-pub mod input;
 
-use crate::{renderer::Renderer, ui::input::InputEvent};
+use crate::{platform::Event, renderer::Renderer};
 
 use button::Button;
 
@@ -118,19 +117,20 @@ impl Ui {
         // Пока ничего.
     }
 
-    pub fn handle_input(&mut self, event: InputEvent) {
+    pub fn handle_input(&mut self, event: Event) {
         match event {
-            InputEvent::TouchDown { x, y } => {
-                self.touch_down(x, y);
+            Event::TouchDown { x, y } => {
+                self.touch_down(x as usize, y as usize);
             }
 
-            InputEvent::TouchUp { x, y } => {
-                self.touch_up(x, y);
+            Event::TouchUp { x, y } => {
+                self.touch_up(x as usize, y as usize);
             }
 
-            InputEvent::TouchMove { x, y } => {
-                self.touch_move(x, y);
+            Event::TouchMove { x, y } => {
+                self.touch_move(x as usize, y as usize);
             }
+            _ => {}
         }
     }
 }
