@@ -3,13 +3,13 @@ use crate::renderer::{Rect, Renderer};
 pub trait Platform {
     fn present(&mut self, renderer: &Renderer, dirty: Rect) -> std::io::Result<()>;
 
-    fn poll_events(&mut self) -> Vec<Event>;
+    fn poll_events(&mut self) -> Vec<InputEvent>;
 
     fn should_close(&self) -> bool;
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum Event {
+pub enum InputEvent {
     Touch { x: i32, y: i32 },
     TouchDown { x: i32, y: i32 },
     TouchUp { x: i32, y: i32 },

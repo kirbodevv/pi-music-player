@@ -1,7 +1,7 @@
 use std::io;
 
 use crate::platform::touchscreen::Touchscreen;
-use crate::platform::{Event, Platform};
+use crate::platform::{InputEvent, Platform};
 use crate::renderer::{Rect, Renderer};
 
 use super::framebuffer::Framebuffer;
@@ -25,7 +25,7 @@ impl Platform for Raspberry {
         self.framebuffer.present(&renderer.pixels(), dirty)
     }
 
-    fn poll_events(&mut self) -> Vec<Event> {
+    fn poll_events(&mut self) -> Vec<InputEvent> {
         let mut events = Vec::new();
         for event in self.touchscreen.poll().unwrap() {
             events.push(event);

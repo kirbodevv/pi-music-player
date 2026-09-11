@@ -3,7 +3,7 @@ use std::{io, os::fd::AsRawFd};
 
 use evdev::{AbsoluteAxisCode, Device, EventSummary, KeyCode};
 
-use crate::platform::Event;
+use crate::platform::InputEvent;
 
 const WIDTH: usize = 480;
 const HEIGHT: usize = 320;
@@ -58,7 +58,7 @@ impl Touchscreen {
             last_y: 0,
         })
     }
-    pub fn poll(&mut self) -> io::Result<Vec<Event>> {
+    pub fn poll(&mut self) -> io::Result<Vec<InputEvent>> {
         let mut events = Vec::new();
 
         let was_touching = self.touching;
@@ -113,21 +113,21 @@ impl Touchscreen {
         }
 
         if !was_touching && self.touching {
-            events.push(Event::TouchDown {
+            events.push(InputEvent::TouchDown {
                 x: self.last_x as i32,
                 y: self.last_y as i32,
             });
         }
 
         if was_touching && self.touching && (x_changed || y_changed) {
-            events.push(Event::TouchMove {
+            events.push(InputEvent::TouchMove {
                 x: self.last_x as i32,
                 y: self.last_y as i32,
             });
         }
 
         if was_touching && !self.touching {
-            events.push(Event::TouchUp {
+            events.push(InputEvent::TouchUp {
                 x: self.last_x as i32,
                 y: self.last_y as i32,
             });

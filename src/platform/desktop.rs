@@ -2,7 +2,7 @@ use std::io;
 
 use minifb::{Key, MouseButton, MouseMode, Window, WindowOptions};
 
-use crate::platform::{Event, Platform};
+use crate::platform::{InputEvent, Platform};
 use crate::renderer::{HEIGHT, Rect, Renderer, WIDTH};
 
 pub struct Desktop {
@@ -61,7 +61,7 @@ impl Platform for Desktop {
             .map_err(io::Error::other)
     }
 
-    fn poll_events(&mut self) -> Vec<Event> {
+    fn poll_events(&mut self) -> Vec<InputEvent> {
         let mut events = Vec::new();
 
         let Some((x, y)) = self.window.get_mouse_pos(MouseMode::Clamp) else {
@@ -77,14 +77,14 @@ impl Platform for Desktop {
             (false, true) => {
                 self.mouse_down = true;
 
-                events.push(Event::TouchDown {
+                events.push(InputEvent::TouchDown {
                     x: x as i32,
                     y: y as i32,
                 });
             }
 
             (true, true) => {
-                events.push(Event::TouchMove {
+                events.push(InputEvent::TouchMove {
                     x: x as i32,
                     y: y as i32,
                 });
@@ -93,7 +93,7 @@ impl Platform for Desktop {
             (true, false) => {
                 self.mouse_down = false;
 
-                events.push(Event::TouchUp {
+                events.push(InputEvent::TouchUp {
                     x: x as i32,
                     y: y as i32,
                 });
