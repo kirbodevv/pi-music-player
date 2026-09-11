@@ -40,7 +40,7 @@ impl Platform for Desktop {
 
         for y in y1..y2 {
             for x in x1..x2 {
-                let rgb565 = renderer.pixels[y * WIDTH + x];
+                let rgb565 = renderer.pixels()[y * WIDTH + x];
 
                 let r = ((rgb565 >> 11) & 0x1f) as u32;
                 let g = ((rgb565 >> 5) & 0x3f) as u32;

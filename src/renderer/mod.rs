@@ -1,0 +1,118 @@
+mod primitives;
+
+pub const WIDTH: usize = 480;
+pub const HEIGHT: usize = 320;
+
+#[derive(Debug, Clone, Copy)]
+pub struct Rect {
+    pub x: usize,
+    pub y: usize,
+    pub width: usize,
+    pub height: usize,
+}
+
+pub struct Renderer {
+    pixels: Vec<u16>,
+
+    dirty: bool,
+    dirty_min_x: usize,
+    dirty_min_y: usize,
+    dirty_max_x: usize,
+    dirty_max_y: usize,
+}
+
+impl Renderer {
+    pub fn new() -> Self {
+        Self {
+            pixels: vec![0; WIDTH * HEIGHT],
+
+            dirty: false,
+            dirty_min_x: WIDTH,
+            dirty_min_y: HEIGHT,
+            dirty_max_x: 0,
+            dirty_max_y: 0,
+        }
+    }
+
+    pub fn pixels(&self) -> &[u16] {
+        &self.pixels
+    }
+
+    pub fn clear(&mut self, color: u16) {
+        for pixel in &mut self.pixels {
+            *pixel = color;
+        }
+
+        self.mark_dirty(Rect {
+            x: 0,
+            y: 0,
+            width: WIDTH,
+            height: HEIGHT,
+        });
+    }
+
+    pub fn pixel(&mut self, x: usize, y: usize, color: u16) {
+        if x >= WIDTH || y >= HEIGHT {
+            return;
+        }
+
+        let index = y * WIDTH + x;
+
+        if self.pixels[index] == color {
+            return;
+        }
+
+        self.pixels[index] = color;
+
+        self.mark_dirty(Rect {
+            x,
+            y,
+            width: 1,
+            height: 1,
+        });
+    }
+
+    fn mark_dirty(&mut self, rect: Rect) {
+        if rect.width == 0 || rect.height == 0 {
+            return;
+        }
+
+        let x2 = (rect.x + rect.width - 1).min(WIDTH - 1);
+        let y2 = (rect.y + rect.height - 1).min(HEIGHT - 1);
+
+        if !self.dirty {
+            self.dirty = true;
+            self.dirty_min_x = rect.x;
+            self.dirty_min_y = rect.y;
+            self.dirty_max_x = x2;
+            self.dirty_max_y = y2;
+            return;
+        }
+
+        self.dirty_min_x = self.dirty_min_x.min(rect.x);
+        self.dirty_min_y = self.dirty_min_y.min(rect.y);
+        self.dirty_max_x = self.dirty_max_x.max(x2);
+        self.dirty_max_y = self.dirty_max_y.max(y2);
+    }
+
+    pub fn take_dirty(&mut self) -> Option<Rect> {
+        if !self.dirty {
+            return None;
+        }
+
+        let rect = Rect {
+            x: self.dirty_min_x,
+            y: self.dirty_min_y,
+            width: self.dirty_max_x - self.dirty_min_x + 1,
+            height: self.dirty_max_y - self.dirty_min_y + 1,
+        };
+
+        self.dirty = false;
+        self.dirty_min_x = WIDTH;
+        self.dirty_min_y = HEIGHT;
+        self.dirty_max_x = 0;
+        self.dirty_max_y = 0;
+
+        Some(rect)
+    }
+}

@@ -19,7 +19,7 @@ impl Raspberry {
 
 impl Platform for Raspberry {
     fn present(&mut self, renderer: &Renderer, dirty: Rect) -> io::Result<()> {
-        self.framebuffer.present(&renderer.pixels, dirty)
+        self.framebuffer.present(&renderer.pixels(), dirty)
     }
 
     fn poll_events(&mut self) {}

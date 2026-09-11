@@ -38,10 +38,6 @@ impl Framebuffer {
     }
 
     pub fn present(&mut self, pixels: &[u16], dirty: Rect) -> io::Result<()> {
-        if dirty.is_empty() {
-            return Ok(());
-        }
-
         let x_end = (dirty.x + dirty.width).min(WIDTH);
         let y_end = (dirty.y + dirty.height).min(HEIGHT);
 
