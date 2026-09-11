@@ -3,7 +3,7 @@ use std::time::Duration;
 use crate::{
     platform::InputEvent,
     renderer::{Rect, Renderer},
-    ui::widget::Widget,
+    ui::{UiEvent, widget::Widget},
 };
 
 pub struct Container {
@@ -36,14 +36,15 @@ impl Widget for Container {
         self.rect
     }
 
-    fn handle_input(&mut self, event: &InputEvent) -> bool {
+    fn handle_input(&mut self, event: &InputEvent) -> UiEvent {
         for child in self.children.iter_mut().rev() {
-            if child.handle_input(event) {
-                return true;
+            let event = child.handle_input(event);
+
+            if event != UiEvent::None {
+                return event;
             }
         }
-
-        false
+        UiEvent::None
     }
 
     fn render(&self, renderer: &mut Renderer) {

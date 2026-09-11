@@ -1,7 +1,7 @@
 use crate::{
     platform::InputEvent,
     renderer::{Rect, Renderer, color::Color},
-    ui::widget::Widget,
+    ui::{UiEvent, widget::Widget},
 };
 
 pub struct Label {
@@ -25,8 +25,8 @@ impl Widget for Label {
         self.rect
     }
 
-    fn handle_input(&mut self, _event: &InputEvent) -> bool {
-        false
+    fn handle_input(&mut self, _event: &InputEvent) -> UiEvent {
+        UiEvent::None
     }
 
     fn render(&self, renderer: &mut Renderer) {

@@ -1,7 +1,7 @@
 use crate::{
     platform::InputEvent,
     renderer::{Rect, Renderer, color::Color},
-    ui::widget::Widget,
+    ui::{Ui, UiEvent, widget::Widget},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -14,6 +14,8 @@ pub struct Button {
     rect: Rect,
     state: ButtonState,
 
+    callback: Option<Box<dyn Fn() -> UiEvent>>,
+
     normal_color: Color,
     pressed_color: Color,
 }
@@ -23,7 +25,7 @@ impl Button {
         Self {
             rect,
             state: ButtonState::Normal,
-
+            callback: None,
             normal_color: Color::rgb(60, 60, 70),
             pressed_color: Color::rgb(100, 100, 120),
         }
@@ -41,6 +43,18 @@ impl Button {
             && y >= self.rect.y
             && y < self.rect.y + self.rect.height
     }
+
+    pub fn on_click(mut self, callback: Box<dyn Fn() -> UiEvent>) -> Self {
+        self.callback = Some(callback);
+        self
+    }
+    fn invoke_callback(&mut self) -> UiEvent {
+        if let Some(callback) = &self.callback {
+            callback()
+        } else {
+            UiEvent::None
+        }
+    }
 }
 
 impl Widget for Button {
@@ -48,12 +62,12 @@ impl Widget for Button {
         self.rect
     }
 
-    fn handle_input(&mut self, event: &InputEvent) -> bool {
+    fn handle_input(&mut self, event: &InputEvent) -> UiEvent {
         match *event {
             InputEvent::TouchDown { x, y } => {
                 if self.contains(x as usize, y as usize) {
                     self.state = ButtonState::Pressed;
-                    return true;
+                    return UiEvent::None;
                 }
             }
 
@@ -62,10 +76,10 @@ impl Widget for Button {
                     self.state = ButtonState::Normal;
 
                     if self.contains(x as usize, y as usize) {
-                        println!("Button clicked!");
+                        return self.invoke_callback();
                     }
 
-                    return true;
+                    return UiEvent::None;
                 }
             }
 
@@ -74,7 +88,7 @@ impl Widget for Button {
             _ => {}
         }
 
-        false
+        UiEvent::None
     }
 
     fn render(&self, renderer: &mut Renderer) {
