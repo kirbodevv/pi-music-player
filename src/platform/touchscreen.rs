@@ -8,8 +8,11 @@ use crate::platform::Event;
 const WIDTH: usize = 480;
 const HEIGHT: usize = 320;
 
-const TOUCH_MIN: f32 = 0.0;
-const TOUCH_MAX: f32 = 4095.0;
+const RAW_X_TOP: i32 = 3500;
+const RAW_X_BOTTOM: i32 = 500;
+
+const RAW_Y_LEFT: i32 = 400;
+const RAW_Y_RIGHT: i32 = 3800;
 
 pub struct Touchscreen {
     device: Device,
@@ -132,28 +135,21 @@ impl Touchscreen {
 
         Ok(events)
     }
+
     fn update_position(&mut self) {
-        self.last_x = raw_to_x(self.last_raw_x);
-        self.last_y = raw_to_y(self.last_raw_y);
+        self.last_x = raw_to_x(self.last_raw_y);
+        self.last_y = raw_to_y(self.last_raw_x);
     }
 }
 
-fn normalize(value: i32) -> f32 {
-    ((value as f32 - TOUCH_MIN) / (TOUCH_MAX - TOUCH_MIN)).clamp(0.0, 1.0)
-}
-
 fn raw_to_x(raw_y: i32) -> usize {
-    let ty = normalize(raw_y);
+    let t = (raw_y - RAW_Y_LEFT) as f32 / (RAW_Y_RIGHT - RAW_Y_LEFT) as f32;
 
-    let x = ((1.0 - ty) * WIDTH as f32) as usize;
-
-    x.min(WIDTH - 1)
+    (t.clamp(0.0, 1.0) * (WIDTH - 1) as f32).round() as usize
 }
 
 fn raw_to_y(raw_x: i32) -> usize {
-    let tx = normalize(raw_x);
+    let t = (RAW_X_TOP - raw_x) as f32 / (RAW_X_TOP - RAW_X_BOTTOM) as f32;
 
-    let y = (tx * HEIGHT as f32) as usize;
-
-    y.min(HEIGHT - 1)
+    (t.clamp(0.0, 1.0) * (HEIGHT - 1) as f32).round() as usize
 }
