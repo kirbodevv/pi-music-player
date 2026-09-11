@@ -1,5 +1,5 @@
-use std::io;
 use std::path::Path;
+use std::{io, os::fd::AsRawFd};
 
 use evdev::{AbsoluteAxisCode, Device, EventSummary, KeyCode};
 
@@ -29,6 +29,20 @@ impl Touchscreen {
 
         println!("Touchscreen: {}", device.name().unwrap_or("unknown"));
 
+        let fd = device.as_raw_fd();
+
+        unsafe {
+            let flags = libc::fcntl(fd, libc::F_GETFL);
+
+            if flags == -1 {
+                return Err(io::Error::last_os_error());
+            }
+
+            if libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) == -1 {
+                return Err(io::Error::last_os_error());
+            }
+        }
+
         Ok(Self {
             device,
 
@@ -41,7 +55,6 @@ impl Touchscreen {
             last_y: 0,
         })
     }
-
     pub fn poll(&mut self) -> io::Result<Vec<InputEvent>> {
         let mut events = Vec::new();
 
@@ -50,7 +63,17 @@ impl Touchscreen {
         let mut x_changed = false;
         let mut y_changed = false;
 
-        for event in self.device.fetch_events()? {
+        let fetched = match self.device.fetch_events() {
+            Ok(events) => events,
+
+            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                return Ok(events);
+            }
+
+            Err(e) => return Err(e),
+        };
+
+        for event in fetched {
             match event.destructure() {
                 EventSummary::AbsoluteAxis(_, code, value) => match code {
                     AbsoluteAxisCode::ABS_X => {
