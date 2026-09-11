@@ -14,6 +14,21 @@ pub struct Rect {
     pub height: usize,
 }
 
+impl Rect {
+    pub fn new(x: usize, y: usize, width: usize, height: usize) -> Self {
+        Self {
+            x,
+            y,
+            width,
+            height,
+        }
+    }
+
+    pub fn contains(&self, x: usize, y: usize) -> bool {
+        x >= self.x && x < self.x + self.width && y >= self.y && y < self.y + self.height
+    }
+}
+
 pub struct Renderer {
     pixels: Vec<u16>,
 

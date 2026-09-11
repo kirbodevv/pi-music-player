@@ -1,29 +1,41 @@
-use crate::renderer::color::Color;
+use crate::renderer::{Rect, color::Color};
 
 use super::{HEIGHT, Renderer, WIDTH};
 
 impl Renderer {
-    pub fn fill_rect(&mut self, x: usize, y: usize, width: usize, height: usize, color: Color) {
-        let x_end = (x + width).min(WIDTH);
-        let y_end = (y + height).min(HEIGHT);
+    pub fn fill_rect(&mut self, rect: Rect, color: Color) {
+        let x_end = (rect.x + rect.width).min(WIDTH);
+        let y_end = (rect.y + rect.height).min(HEIGHT);
 
-        for py in y..y_end {
-            for px in x..x_end {
+        for py in rect.y..y_end {
+            for px in rect.x..x_end {
                 self.pixel(px, py, color);
             }
         }
     }
 
-    pub fn rect(&mut self, x: usize, y: usize, width: usize, height: usize, color: Color) {
-        if width == 0 || height == 0 {
+    pub fn rect(&mut self, rect: Rect, color: Color) {
+        if rect.width == 0 || rect.height == 0 {
             return;
         }
 
-        self.line(x, y, x + width - 1, y, color);
-        self.line(x, y + height - 1, x + width - 1, y + height - 1, color);
+        self.line(rect.x, rect.y, rect.x + rect.width - 1, rect.y, color);
+        self.line(
+            rect.x,
+            rect.y + rect.height - 1,
+            rect.x + rect.width - 1,
+            rect.y + rect.height - 1,
+            color,
+        );
 
-        self.line(x, y, x, y + height - 1, color);
-        self.line(x + width - 1, y, x + width - 1, y + height - 1, color);
+        self.line(rect.x, rect.y, rect.x, rect.y + rect.height - 1, color);
+        self.line(
+            rect.x + rect.width - 1,
+            rect.y,
+            rect.x + rect.width - 1,
+            rect.y + rect.height - 1,
+            color,
+        );
     }
 
     pub fn line(&mut self, mut x0: usize, mut y0: usize, x1: usize, y1: usize, color: Color) {
