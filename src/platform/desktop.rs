@@ -1,6 +1,6 @@
 use std::io;
 
-use minifb::{Key, Window, WindowOptions};
+use minifb::{Key, MouseButton, MouseMode, Window, WindowOptions};
 
 use crate::platform::{Event, Platform};
 use crate::renderer::{HEIGHT, Rect, Renderer, WIDTH};
@@ -8,6 +8,7 @@ use crate::renderer::{HEIGHT, Rect, Renderer, WIDTH};
 pub struct Desktop {
     window: Window,
     buffer: Vec<u32>,
+    mouse_down: bool,
 }
 
 impl Desktop {
@@ -27,6 +28,7 @@ impl Desktop {
         Ok(Self {
             window,
             buffer: vec![0; WIDTH * HEIGHT],
+            mouse_down: false,
         })
     }
 }
@@ -60,7 +62,47 @@ impl Platform for Desktop {
     }
 
     fn poll_events(&mut self) -> Vec<Event> {
-        vec![]
+        let mut events = Vec::new();
+
+        let Some((x, y)) = self.window.get_mouse_pos(MouseMode::Clamp) else {
+            return events;
+        };
+
+        let x = x as usize;
+        let y = y as usize;
+
+        let is_down = self.window.get_mouse_down(MouseButton::Left);
+
+        match (self.mouse_down, is_down) {
+            (false, true) => {
+                self.mouse_down = true;
+
+                events.push(Event::TouchDown {
+                    x: x as i32,
+                    y: y as i32,
+                });
+            }
+
+            (true, true) => {
+                events.push(Event::TouchMove {
+                    x: x as i32,
+                    y: y as i32,
+                });
+            }
+
+            (true, false) => {
+                self.mouse_down = false;
+
+                events.push(Event::TouchUp {
+                    x: x as i32,
+                    y: y as i32,
+                });
+            }
+
+            (false, false) => {}
+        }
+
+        events
     }
 
     fn should_close(&self) -> bool {
