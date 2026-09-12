@@ -14,7 +14,7 @@ use crate::{
         image::ImageWidget,
         label::{Label, TextAlign},
         layout::LayoutParams,
-        style::ButtonStyle,
+        style::{ButtonStyle, ContainerStyle},
         widget::Widget,
     },
 };
@@ -99,6 +99,11 @@ impl Ui {
             .with_padding(12)
             .with_spacing(14)
             .with_direction(Direction::Horizontal)
+            .with_style(
+                ContainerStyle::default()
+                    .with_background(Color::rgb(100, 135, 150))
+                    .with_radius(8),
+            )
             .with_child(
                 ImageWidget::new(cover),
                 LayoutParams {

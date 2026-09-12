@@ -35,3 +35,30 @@ impl Default for ButtonStyle {
         }
     }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct ContainerStyle {
+    pub background: Option<Color>,
+    pub radius: usize,
+}
+
+impl Default for ContainerStyle {
+    fn default() -> Self {
+        Self {
+            background: None,
+            radius: 0,
+        }
+    }
+}
+
+impl ContainerStyle {
+    pub fn with_background(mut self, background: Color) -> Self {
+        self.background = Some(background);
+        self
+    }
+
+    pub fn with_radius(mut self, radius: usize) -> Self {
+        self.radius = radius;
+        self
+    }
+}

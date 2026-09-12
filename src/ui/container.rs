@@ -6,6 +6,7 @@ use crate::{
     ui::{
         UiEvent,
         layout::{Dimension, LayoutParams},
+        style::ContainerStyle,
         widget::Widget,
     },
 };
@@ -27,6 +28,7 @@ pub struct Container {
     direction: Direction,
     spacing: usize,
     padding: usize,
+    style: ContainerStyle,
 }
 
 impl Container {
@@ -37,6 +39,7 @@ impl Container {
             direction: Direction::Vertical,
             spacing: 0,
             padding: 0,
+            style: ContainerStyle::default(),
         }
     }
 
@@ -64,6 +67,11 @@ impl Container {
     pub fn with_padding(mut self, padding: usize) -> Self {
         self.padding = padding;
         self.layout();
+        self
+    }
+
+    pub fn with_style(mut self, style: ContainerStyle) -> Self {
+        self.style = style;
         self
     }
 
@@ -245,6 +253,13 @@ impl Widget for Container {
         let bounds = self.bounds();
 
         renderer.with_clip(bounds, |renderer| {
+            if let Some(background) = self.style.background {
+                if self.style.radius > 0 {
+                    renderer.fill_rounded_rect(bounds, self.style.radius, background);
+                } else {
+                    renderer.fill_rect(bounds, background);
+                }
+            }
             for child in &self.children {
                 child.widget.render(renderer);
             }
