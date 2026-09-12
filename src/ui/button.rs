@@ -21,9 +21,9 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn new(rect: Rect) -> Self {
+    pub fn new() -> Self {
         Self {
-            rect,
+            rect: Rect::new(0, 0, 0, 0),
             state: ButtonState::Normal,
             callback: None,
             normal_color: Color::rgb(60, 60, 70),
@@ -48,6 +48,12 @@ impl Button {
         self.callback = Some(callback);
         self
     }
+
+    pub fn with_bounds(mut self, rect: Rect) -> Self {
+        self.rect = rect;
+        self
+    }
+
     fn invoke_callback(&mut self) -> UiEvent {
         if let Some(callback) = &self.callback {
             callback()
@@ -60,6 +66,10 @@ impl Button {
 impl Widget for Button {
     fn bounds(&self) -> Rect {
         self.rect
+    }
+
+    fn set_bounds(&mut self, rect: Rect) {
+        self.rect = rect;
     }
 
     fn handle_input(&mut self, event: &InputEvent) -> UiEvent {

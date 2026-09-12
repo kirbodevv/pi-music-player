@@ -48,101 +48,71 @@ impl Ui {
             height: 320,
         };
         let launcher = Container::new(Rect::new(0, 0, 480, 320))
+            .with_padding(10)
+            .with_spacing(8)
             .with_child(
-                Button::new(Rect::new(40, 60, 180, 80))
+                Button::new()
                     .with_color(Color::RED, Color::MAGENTA)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Music))),
+                    .on_click(Box::new(|| UiEvent::Open(Screen::Music)))
+                    .with_bounds(Rect::new(0, 0, 0, 50)),
             )
             .with_child(
-                Button::new(Rect::new(260, 60, 180, 80)).with_color(Color::BLACK, Color::GRAY),
+                Button::new()
+                    .with_color(Color::BLACK, Color::GRAY)
+                    .with_bounds(Rect::new(0, 0, 0, 50)),
             )
             .with_child(
-                Button::new(Rect::new(40, 180, 180, 80)).with_color(Color::BLUE, Color::CYAN),
+                Button::new()
+                    .with_color(Color::BLUE, Color::CYAN)
+                    .with_bounds(Rect::new(0, 0, 0, 50)),
             )
             .with_child(
-                Button::new(Rect::new(260, 180, 180, 80))
+                Button::new()
                     .with_color(Color::YELLOW, Color::WHITE)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Settings))),
-            )
-            .with_child(
-                Label::new("Hello\nWorld!!!")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Center)
-                    .with_vertical_align(VerticalAlign::Center),
-            )
-            .with_child(
-                Label::new("TL")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Left)
-                    .with_vertical_align(VerticalAlign::Top),
-            )
-            .with_child(
-                Label::new("TC")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Center)
-                    .with_vertical_align(VerticalAlign::Top),
-            )
-            .with_child(
-                Label::new("TR")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Right)
-                    .with_vertical_align(VerticalAlign::Top),
-            )
-            .with_child(
-                Label::new("CL")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Left)
-                    .with_vertical_align(VerticalAlign::Center),
-            )
-            .with_child(
-                Label::new("CR")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Right)
-                    .with_vertical_align(VerticalAlign::Center),
-            )
-            .with_child(
-                Label::new("BL")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Left)
-                    .with_vertical_align(VerticalAlign::Bottom),
-            )
-            .with_child(
-                Label::new("BC")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Center)
-                    .with_vertical_align(VerticalAlign::Bottom),
-            )
-            .with_child(
-                Label::new("BR")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Right)
-                    .with_vertical_align(VerticalAlign::Bottom),
+                    .on_click(Box::new(|| UiEvent::Open(Screen::Settings)))
+                    .with_bounds(Rect::new(0, 0, 0, 50)),
             );
 
         let music = Container::new(Rect::new(0, 0, 480, 320))
-            .with_child(
-                Button::new(Rect::new(0, 0, 100, 100))
-                    .with_color(Color::RED, Color::MAGENTA)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Launcher))),
-            )
+            .with_padding(10)
+            .with_spacing(8)
             .with_child(
                 Label::new("Музыка")
-                    .with_bounds(SCREEN_RECT)
                     .with_text_align(TextAlign::Center)
-                    .with_vertical_align(VerticalAlign::Top),
+                    .with_vertical_align(VerticalAlign::Top)
+                    .with_bounds(Rect {
+                        x: 0,
+                        y: 0,
+                        width: 100,
+                        height: 100,
+                    }),
+            )
+            .with_child(
+                Button::new()
+                    .with_color(Color::RED, Color::MAGENTA)
+                    .on_click(Box::new(|| UiEvent::Open(Screen::Launcher)))
+                    .with_bounds(Rect::new(0, 0, 100, 100)),
             );
 
         let settings = Container::new(Rect::new(0, 0, 480, 320))
-            .with_child(
-                Button::new(Rect::new(0, 0, 100, 100))
-                    .with_color(Color::RED, Color::MAGENTA)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Launcher))),
-            )
+            .with_padding(10)
+            .with_spacing(8)
             .with_child(
                 Label::new("Настройки")
-                    .with_bounds(SCREEN_RECT)
+                    .with_bounds(Rect {
+                        x: 0,
+                        y: 0,
+                        width: 100,
+                        height: 100,
+                    })
                     .with_text_align(TextAlign::Center)
                     .with_vertical_align(VerticalAlign::Top),
+            )
+            .with_child(
+                Button::new()
+                    .with_color(Color::RED, Color::MAGENTA)
+                    .on_click(Box::new(|| UiEvent::Open(Screen::Launcher)))
+                    .with_bounds(Rect::new(0, 0, 100, 100)),
             );
 
         Self {

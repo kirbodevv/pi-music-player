@@ -9,6 +9,8 @@ use crate::{
 pub trait Widget {
     fn bounds(&self) -> Rect;
 
+    fn set_bounds(&mut self, rect: Rect);
+
     fn handle_input(&mut self, event: &InputEvent) -> UiEvent;
 
     fn render(&self, renderer: &mut Renderer);

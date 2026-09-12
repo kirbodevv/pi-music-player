@@ -81,6 +81,10 @@ impl Widget for Label {
         self.rect
     }
 
+    fn set_bounds(&mut self, rect: Rect) {
+        self.rect = rect;
+    }
+
     fn handle_input(&mut self, _event: &InputEvent) -> UiEvent {
         UiEvent::None
     }
