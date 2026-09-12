@@ -10,6 +10,7 @@ use crate::{
     },
 };
 
+#[derive(Debug, Clone, Copy)]
 pub enum Direction {
     Vertical,
     Horizontal,
@@ -225,7 +226,7 @@ impl Widget for Container {
 
     fn set_bounds(&mut self, rect: Rect) {
         self.rect = rect;
-        self.layout_vertical();
+        self.layout();
     }
 
     fn handle_input(&mut self, event: &InputEvent) -> UiEvent {

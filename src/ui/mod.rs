@@ -61,7 +61,7 @@ impl Ui {
             .with_font(&FONT_24)
             .with_color(Color::rgb(240, 240, 245));
 
-        let status = Label::new("12:48  78%")
+        let status = Label::new("12:48   •   78%")
             .with_font(&FONT_16)
             .with_color(Color::rgb(150, 155, 170))
             .with_text_align(TextAlign::Right);

@@ -83,6 +83,8 @@ fn supported_characters() -> Vec<char> {
         chars.push(char::from_u32(code).unwrap());
     }
 
+    chars.extend(['•', '→', '←', '↑', '↓', '✓', '×', '−']);
+
     // Cyrillic.
     for code in 0x0400u32..=0x04FFu32 {
         chars.push(char::from_u32(code).unwrap());
