@@ -1,6 +1,6 @@
 use crate::{
     platform::InputEvent,
-    renderer::{Rect, Renderer, color::Color},
+    renderer::{FONT_32, Rect, Renderer, color::Color},
     ui::{UiEvent, widget::Widget},
 };
 
@@ -30,6 +30,6 @@ impl Widget for Label {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        // renderer.draw_text(self.rect.x, self.rect.y, &self.text, self.color);
+        renderer.draw_text(self.rect.x, self.rect.y, &self.text, &FONT_32, self.color);
     }
 }

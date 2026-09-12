@@ -19,14 +19,8 @@ impl Container {
         }
     }
 
-    pub fn add<W: Widget + 'static>(&mut self, widget: W) {
+    pub fn with_child<W: Widget + 'static>(mut self, widget: W) -> Self {
         self.children.push(Box::new(widget));
-    }
-
-    pub fn with_children<W: Widget + 'static>(mut self, children: Vec<W>) -> Self {
-        for child in children {
-            self.add(child);
-        }
         self
     }
 }

@@ -1,10 +1,14 @@
 use crate::renderer::color::Color;
 
 pub mod color;
+mod font;
 mod primitives;
+mod text;
 
 pub const WIDTH: usize = 480;
 pub const HEIGHT: usize = 320;
+
+pub use font::{FONT_12, FONT_16, FONT_20, FONT_24, FONT_32};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rect {
@@ -69,6 +73,36 @@ impl Renderer {
             width: WIDTH,
             height: HEIGHT,
         });
+    }
+
+    fn blend_pixel(&mut self, x: usize, y: usize, color: Color) {
+        if x >= WIDTH || y >= HEIGHT {
+            return;
+        }
+
+        if color.a == 0 {
+            return;
+        }
+
+        if color.a == 255 {
+            self.pixel(x, y, color);
+            return;
+        }
+
+        let index = y * WIDTH + x;
+
+        let background = Color::from(self.pixels[index]);
+
+        let alpha = color.a as u16;
+        let inv_alpha = 255 - alpha;
+
+        let r = (color.r as u16 * alpha + background.r as u16 * inv_alpha) / 255;
+
+        let g = (color.g as u16 * alpha + background.g as u16 * inv_alpha) / 255;
+
+        let b = (color.b as u16 * alpha + background.b as u16 * inv_alpha) / 255;
+
+        self.pixel(x, y, Color::rgb(r as u8, g as u8, b as u8));
     }
 
     pub fn pixel(&mut self, x: usize, y: usize, color: Color) {
