@@ -86,8 +86,6 @@ impl Widget for Label {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        let size = self.font.measure(&self.text);
-
         let lines: Vec<&str> = self.text.lines().collect();
 
         if lines.is_empty() {
