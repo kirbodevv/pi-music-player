@@ -44,4 +44,18 @@ impl LayoutParams {
     pub fn auto() -> Self {
         Self::default()
     }
+
+    pub fn width_fill() -> Self {
+        Self {
+            width: Dimension::Fill,
+            height: Dimension::Auto,
+        }
+    }
+
+    pub fn height_fill() -> Self {
+        Self {
+            width: Dimension::Auto,
+            height: Dimension::Fill,
+        }
+    }
 }

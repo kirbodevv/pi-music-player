@@ -6,11 +6,11 @@ pub mod widget;
 
 use crate::{
     event::InputEvent,
-    renderer::{Rect, Renderer, color::Color},
+    renderer::{FONT_16, FONT_20, FONT_24, FONT_32, Rect, Renderer, color::Color},
     ui::{
-        container::Container,
-        label::{Label, TextAlign, VerticalAlign},
-        layout::{Dimension, LayoutParams},
+        container::{Container, Direction},
+        label::{Label, TextAlign},
+        layout::LayoutParams,
         widget::Widget,
     },
 };
@@ -49,15 +49,170 @@ impl Ui {
             width: 480,
             height: 320,
         };
-        let launcher = Container::new(Rect::new(0, 0, 480, 320))
-            .with_padding(20)
+        let mut launcher = Container::new(Rect::new(0, 0, 480, 320))
+            .with_padding(16)
+            .with_spacing(10);
+
+        /*
+         * HEADER
+         */
+
+        let title = Label::new("MY DEVICE")
+            .with_font(&FONT_24)
+            .with_color(Color::rgb(240, 240, 245));
+
+        let status = Label::new("12:48  78%")
+            .with_font(&FONT_16)
+            .with_color(Color::rgb(150, 155, 170))
+            .with_text_align(TextAlign::Right);
+
+        let header = Container::new(Rect::default())
+            .with_direction(Direction::Horizontal)
+            .with_spacing(8)
+            .with_child(
+                title,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fixed(32),
+                },
+            )
+            .with_child(
+                status,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Auto,
+                    height: crate::ui::layout::Dimension::Fixed(32),
+                },
+            );
+
+        /*
+         * NOW PLAYING
+         */
+
+        let now_playing = Container::new(Rect::default())
+            .with_padding(14)
+            .with_spacing(4)
+            .with_child(
+                Label::new("NOW PLAYING")
+                    .with_font(&FONT_16)
+                    .with_color(Color::rgb(130, 135, 150)),
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fixed(20),
+                },
+            )
+            .with_child(
+                Label::new("Midnight City")
+                    .with_font(&FONT_32)
+                    .with_color(Color::WHITE),
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fixed(40),
+                },
+            )
+            .with_child(
+                Label::new("M83")
+                    .with_font(&FONT_20)
+                    .with_color(Color::rgb(170, 175, 190)),
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fixed(28),
+                },
+            );
+
+        /*
+         * APPLICATIONS
+         */
+
+        let music = Button::new()
+            .with_text("MUSIC")
+            .with_color(Color::rgb(55, 60, 75), Color::rgb(85, 90, 115))
+            .on_click(Box::new(|| UiEvent::Open(crate::ui::Screen::Music)));
+
+        let settings = Button::new()
+            .with_text("SETTINGS")
+            .with_color(Color::rgb(55, 60, 75), Color::rgb(85, 90, 115))
+            .on_click(Box::new(|| UiEvent::Open(crate::ui::Screen::Settings)));
+
+        let files = Button::new()
+            .with_text("FILES")
+            .with_color(Color::rgb(55, 60, 75), Color::rgb(85, 90, 115));
+
+        let about = Button::new()
+            .with_text("ABOUT")
+            .with_color(Color::rgb(55, 60, 75), Color::rgb(85, 90, 115));
+
+        let row1 = Container::new(Rect::default())
+            .with_direction(Direction::Horizontal)
             .with_spacing(10)
-            .with_child(Label::new("Music"), LayoutParams::auto())
-            .with_child(Button::new().with_text("Play"), LayoutParams::fill());
+            .with_child(
+                music,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fill,
+                },
+            )
+            .with_child(
+                settings,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fill,
+                },
+            );
 
-        let music = Container::new(Rect::new(0, 0, 480, 320));
+        let row2 = Container::new(Rect::default())
+            .with_direction(Direction::Horizontal)
+            .with_spacing(10)
+            .with_child(
+                files,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fill,
+                },
+            )
+            .with_child(
+                about,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fill,
+                },
+            );
 
-        let settings = Container::new(Rect::new(0, 0, 480, 320));
+        /*
+         * ROOT
+         */
+
+        launcher = launcher
+            .with_child(
+                header,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fixed(32),
+                },
+            )
+            .with_child(
+                now_playing,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fixed(105),
+                },
+            )
+            .with_child(
+                row1,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fill,
+                },
+            )
+            .with_child(
+                row2,
+                LayoutParams {
+                    width: crate::ui::layout::Dimension::Fill,
+                    height: crate::ui::layout::Dimension::Fill,
+                },
+            );
+
+        let music = Container::new(SCREEN_RECT);
+        let settings = Container::new(SCREEN_RECT);
 
         Self {
             screen: Screen::Launcher,

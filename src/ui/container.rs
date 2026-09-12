@@ -44,26 +44,33 @@ impl Container {
             widget: Box::new(widget),
             layout,
         });
-        match self.direction {
-            Direction::Vertical => self.layout_vertical(),
-            Direction::Horizontal => {}
-        }
+        self.layout();
         self
     }
 
     pub fn with_direction(mut self, direction: Direction) -> Self {
         self.direction = direction;
+        self.layout();
         self
     }
 
     pub fn with_spacing(mut self, spacing: usize) -> Self {
         self.spacing = spacing;
+        self.layout();
         self
     }
 
     pub fn with_padding(mut self, padding: usize) -> Self {
         self.padding = padding;
+        self.layout();
         self
+    }
+
+    fn layout(&mut self) {
+        match self.direction {
+            Direction::Vertical => self.layout_vertical(),
+            Direction::Horizontal => self.layout_horizontal(),
+        }
     }
 
     fn layout_vertical(&mut self) {
@@ -129,6 +136,73 @@ impl Container {
             });
 
             y += height + self.spacing;
+        }
+    }
+    fn layout_horizontal(&mut self) {
+        let inner_width = self.rect.width.saturating_sub(self.padding * 2);
+
+        let spacing_total = self
+            .spacing
+            .saturating_mul(self.children.len().saturating_sub(1));
+
+        let available_width = inner_width.saturating_sub(spacing_total);
+
+        let mut fixed_width = 0;
+        let mut fill_count = 0;
+
+        for child in &self.children {
+            match child.layout.width {
+                Dimension::Fixed(width) => {
+                    fixed_width += width;
+                }
+
+                Dimension::Auto => {
+                    fixed_width += child.widget.preferred_size().width;
+                }
+
+                Dimension::Fill => {
+                    fill_count += 1;
+                }
+            }
+        }
+
+        let remaining_width = available_width.saturating_sub(fixed_width);
+
+        let fill_width = if fill_count > 0 {
+            remaining_width / fill_count
+        } else {
+            0
+        };
+
+        let mut x = self.rect.x + self.padding;
+
+        for child in &mut self.children {
+            let preferred_size = child.widget.preferred_size();
+
+            let width = match child.layout.width {
+                Dimension::Fixed(width) => width,
+
+                Dimension::Auto => preferred_size.width,
+
+                Dimension::Fill => fill_width,
+            };
+
+            let height = match child.layout.height {
+                Dimension::Fixed(height) => height,
+
+                Dimension::Auto => preferred_size.height,
+
+                Dimension::Fill => self.rect.height.saturating_sub(self.padding * 2),
+            };
+
+            child.widget.set_bounds(Rect {
+                x,
+                y: self.rect.y + self.padding,
+                width,
+                height,
+            });
+
+            x += width + self.spacing;
         }
     }
 }
