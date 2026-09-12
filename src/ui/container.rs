@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use crate::{
-    platform::InputEvent,
+    event::InputEvent,
     renderer::{Rect, Renderer},
     ui::{UiEvent, widget::Widget},
 };

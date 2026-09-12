@@ -3,7 +3,7 @@ use std::{io, os::fd::AsRawFd};
 
 use evdev::{AbsoluteAxisCode, Device, EventSummary, KeyCode};
 
-use crate::platform::InputEvent;
+use crate::event::InputEvent;
 
 const WIDTH: usize = 480;
 const HEIGHT: usize = 320;

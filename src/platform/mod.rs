@@ -1,4 +1,7 @@
-use crate::renderer::{Rect, Renderer};
+use crate::{
+    event::InputEvent,
+    renderer::{Rect, Renderer},
+};
 
 pub trait Platform {
     fn present(&mut self, renderer: &Renderer, dirty: Rect) -> std::io::Result<()>;
@@ -6,16 +9,6 @@ pub trait Platform {
     fn poll_events(&mut self) -> Vec<InputEvent>;
 
     fn should_close(&self) -> bool;
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum InputEvent {
-    Touch { x: i32, y: i32 },
-    TouchDown { x: i32, y: i32 },
-    TouchUp { x: i32, y: i32 },
-    TouchMove { x: i32, y: i32 },
-
-    Quit,
 }
 
 #[cfg(feature = "desktop")]

@@ -4,7 +4,7 @@ mod label;
 mod widget;
 
 use crate::{
-    platform::InputEvent,
+    event::InputEvent,
     renderer::{Rect, Renderer, color::Color},
     ui::{container::Container, label::Label, widget::Widget},
 };

@@ -1,8 +1,11 @@
 use std::io;
 
-use crate::platform::touchscreen::Touchscreen;
-use crate::platform::{InputEvent, Platform};
-use crate::renderer::{Rect, Renderer};
+use crate::{
+    event::InputEvent,
+    platform::Platform,
+    platform::touchscreen::Touchscreen,
+    renderer::{Rect, Renderer},
+};
 
 use super::framebuffer::Framebuffer;
 

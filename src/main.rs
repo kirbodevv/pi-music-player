@@ -1,4 +1,5 @@
 mod app;
+mod event;
 mod platform;
 mod renderer;
 mod ui;

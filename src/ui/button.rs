@@ -1,5 +1,5 @@
 use crate::{
-    platform::InputEvent,
+    event::InputEvent,
     renderer::{Rect, Renderer, color::Color},
     ui::{UiEvent, widget::Widget},
 };
