@@ -77,14 +77,14 @@ impl Platform for Desktop {
             (false, true) => {
                 self.mouse_down = true;
 
-                events.push(InputEvent::TouchDown {
+                events.push(InputEvent::PointDown {
                     x: x as i32,
                     y: y as i32,
                 });
             }
 
             (true, true) => {
-                events.push(InputEvent::TouchMove {
+                events.push(InputEvent::PointMove {
                     x: x as i32,
                     y: y as i32,
                 });
@@ -93,7 +93,7 @@ impl Platform for Desktop {
             (true, false) => {
                 self.mouse_down = false;
 
-                events.push(InputEvent::TouchUp {
+                events.push(InputEvent::PointUp {
                     x: x as i32,
                     y: y as i32,
                 });

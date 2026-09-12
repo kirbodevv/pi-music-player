@@ -113,21 +113,21 @@ impl Touchscreen {
         }
 
         if !was_touching && self.touching {
-            events.push(InputEvent::TouchDown {
+            events.push(InputEvent::PointDown {
                 x: self.last_x as i32,
                 y: self.last_y as i32,
             });
         }
 
         if was_touching && self.touching && (x_changed || y_changed) {
-            events.push(InputEvent::TouchMove {
+            events.push(InputEvent::PointMove {
                 x: self.last_x as i32,
                 y: self.last_y as i32,
             });
         }
 
         if was_touching && !self.touching {
-            events.push(InputEvent::TouchUp {
+            events.push(InputEvent::PointUp {
                 x: self.last_x as i32,
                 y: self.last_y as i32,
             });

@@ -64,14 +64,14 @@ impl Widget for Button {
 
     fn handle_input(&mut self, event: &InputEvent) -> UiEvent {
         match *event {
-            InputEvent::TouchDown { x, y } => {
+            InputEvent::PointDown { x, y } => {
                 if self.contains(x as usize, y as usize) {
                     self.state = ButtonState::Pressed;
                     return UiEvent::None;
                 }
             }
 
-            InputEvent::TouchUp { x, y } => {
+            InputEvent::PointUp { x, y } => {
                 if self.state == ButtonState::Pressed {
                     self.state = ButtonState::Normal;
 
@@ -83,7 +83,7 @@ impl Widget for Button {
                 }
             }
 
-            InputEvent::TouchMove { .. } => {}
+            InputEvent::PointMove { .. } => {}
 
             _ => {}
         }
