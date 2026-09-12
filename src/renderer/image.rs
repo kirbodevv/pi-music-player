@@ -10,7 +10,7 @@ pub enum Scale {
     Exact { width: u32, height: u32 },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Image {
     pub width: usize,
     pub height: usize,

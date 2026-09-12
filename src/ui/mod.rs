@@ -54,7 +54,7 @@ impl Ui {
             height: 320,
         };
 
-        let cover = Image::load("cover.jpg", Scale::FixedWidth(72)).expect("failed to load cover");
+        let cover = Image::load("cover.jpg", Scale::FixedWidth(72)).unwrap_or(Image::default());
 
         let mut launcher = Container::new(Rect::new(0, 0, 480, 320))
             .with_padding(16)
