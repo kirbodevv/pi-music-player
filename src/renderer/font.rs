@@ -33,13 +33,27 @@ impl Font {
         let mut width = 0;
         let mut height = 0;
 
+        for line in text.lines() {
+            let size = self.measure_line(line);
+
+            width = width.max(size.width);
+            height += size.height;
+        }
+
+        Size { width, height }
+    }
+
+    pub fn measure_line(&self, text: &str) -> Size {
+        let mut width = 0;
+        let mut height = 0;
+
         for c in text.chars() {
             let Some(glyph) = self.glyph(c) else {
                 continue;
             };
 
             width += glyph.advance.ceil() as usize;
-            height = height.max(glyph.height as usize);
+            height = height.max(glyph.height);
         }
 
         Size { width, height }

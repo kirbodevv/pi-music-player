@@ -65,6 +65,12 @@ impl Ui {
                     .on_click(Box::new(|| UiEvent::Open(Screen::Settings))),
             )
             .with_child(
+                Label::new("Hello\nWorld!!!")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Center)
+                    .with_vertical_align(VerticalAlign::Center),
+            )
+            .with_child(
                 Label::new("TL")
                     .with_bounds(SCREEN_RECT)
                     .with_text_align(TextAlign::Left)
@@ -86,12 +92,6 @@ impl Ui {
                 Label::new("CL")
                     .with_bounds(SCREEN_RECT)
                     .with_text_align(TextAlign::Left)
-                    .with_vertical_align(VerticalAlign::Center),
-            )
-            .with_child(
-                Label::new("CC")
-                    .with_bounds(SCREEN_RECT)
-                    .with_text_align(TextAlign::Center)
                     .with_vertical_align(VerticalAlign::Center),
             )
             .with_child(
@@ -119,17 +119,31 @@ impl Ui {
                     .with_vertical_align(VerticalAlign::Bottom),
             );
 
-        let music = Container::new(Rect::new(0, 0, 480, 320)).with_child(
-            Button::new(Rect::new(0, 0, 100, 100))
-                .with_color(Color::RED, Color::MAGENTA)
-                .on_click(Box::new(|| UiEvent::Open(Screen::Launcher))),
-        );
+        let music = Container::new(Rect::new(0, 0, 480, 320))
+            .with_child(
+                Button::new(Rect::new(0, 0, 100, 100))
+                    .with_color(Color::RED, Color::MAGENTA)
+                    .on_click(Box::new(|| UiEvent::Open(Screen::Launcher))),
+            )
+            .with_child(
+                Label::new("Музыка")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Center)
+                    .with_vertical_align(VerticalAlign::Top),
+            );
 
-        let settings = Container::new(Rect::new(0, 0, 480, 320)).with_child(
-            Button::new(Rect::new(0, 0, 100, 100))
-                .with_color(Color::RED, Color::MAGENTA)
-                .on_click(Box::new(|| UiEvent::Open(Screen::Launcher))),
-        );
+        let settings = Container::new(Rect::new(0, 0, 480, 320))
+            .with_child(
+                Button::new(Rect::new(0, 0, 100, 100))
+                    .with_color(Color::RED, Color::MAGENTA)
+                    .on_click(Box::new(|| UiEvent::Open(Screen::Launcher))),
+            )
+            .with_child(
+                Label::new("Настройки")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Center)
+                    .with_vertical_align(VerticalAlign::Top),
+            );
 
         Self {
             screen: Screen::Launcher,

@@ -88,17 +88,40 @@ impl Widget for Label {
     fn render(&self, renderer: &mut Renderer) {
         let size = self.font.measure(&self.text);
 
-        let x = match self.text_align {
-            TextAlign::Left => self.rect.x,
-            TextAlign::Center => self.rect.x + (self.rect.width - size.width) / 2,
-            TextAlign::Right => self.rect.x + self.rect.width - size.width,
-        };
-        let y = match self.vertical_align {
-            VerticalAlign::Top => self.rect.y + size.height,
-            VerticalAlign::Center => self.rect.y + (self.rect.height + size.height) / 2,
-            VerticalAlign::Bottom => self.rect.y + self.rect.height,
+        let lines: Vec<&str> = self.text.lines().collect();
+
+        if lines.is_empty() {
+            return;
+        }
+
+        let line_height = self.font.size as usize;
+
+        let total_height = line_height * lines.len();
+
+        let start_y = match self.vertical_align {
+            VerticalAlign::Top => self.rect.y,
+            VerticalAlign::Center => {
+                self.rect.y + self.rect.height.saturating_sub(total_height) / 2
+            }
+            VerticalAlign::Bottom => self.rect.y + self.rect.height.saturating_sub(total_height),
         };
 
-        renderer.draw_text(x, y, &self.text, self.font, self.color);
+        for (index, line) in lines.iter().enumerate() {
+            let line_size = self.font.measure_line(line);
+
+            let x = match self.text_align {
+                TextAlign::Left => self.rect.x,
+
+                TextAlign::Center => {
+                    self.rect.x + self.rect.width.saturating_sub(line_size.width) / 2
+                }
+
+                TextAlign::Right => self.rect.x + self.rect.width.saturating_sub(line_size.width),
+            };
+
+            let y = start_y + index * line_height;
+
+            renderer.draw_text(x, y + line_size.height, line, self.font, self.color);
+        }
     }
 }
