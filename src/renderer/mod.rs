@@ -1,16 +1,16 @@
 use crate::renderer::color::Color;
 
 pub mod color;
-mod font;
-mod primitives;
-mod text;
+pub mod font;
+pub mod primitives;
+pub mod text;
 
 pub const WIDTH: usize = 480;
 pub const HEIGHT: usize = 320;
 
 pub use font::{FONT_12, FONT_16, FONT_20, FONT_24, FONT_32};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Rect {
     pub x: usize,
     pub y: usize,

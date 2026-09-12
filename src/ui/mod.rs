@@ -6,7 +6,11 @@ mod widget;
 use crate::{
     event::InputEvent,
     renderer::{Rect, Renderer, color::Color},
-    ui::{container::Container, label::Label, widget::Widget},
+    ui::{
+        container::Container,
+        label::{Label, TextAlign, VerticalAlign},
+        widget::Widget,
+    },
 };
 
 use button::Button;
@@ -54,11 +58,18 @@ impl Ui {
                     .with_color(Color::YELLOW, Color::WHITE)
                     .on_click(Box::new(|| UiEvent::Open(Screen::Settings))),
             )
-            .with_child(Label::new(
-                Rect::new(0, 100, 100, 100),
-                "Hello, World!",
-                Color::WHITE,
-            ));
+            .with_child(
+                Label::new("Hello, World!")
+                    .with_color(Color::WHITE)
+                    .with_bounds(Rect {
+                        x: 0,
+                        y: 0,
+                        width: 480,
+                        height: 320,
+                    })
+                    .with_text_align(TextAlign::Center)
+                    .with_vertical_align(VerticalAlign::Center),
+            );
 
         let music = Container::new(Rect::new(0, 0, 480, 320)).with_child(
             Button::new(Rect::new(0, 0, 100, 100))
