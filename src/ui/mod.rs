@@ -1,5 +1,6 @@
 pub mod button;
 pub mod container;
+pub mod image;
 pub mod label;
 pub mod layout;
 pub mod style;
@@ -7,9 +8,10 @@ pub mod widget;
 
 use crate::{
     event::InputEvent,
-    renderer::{FONT_16, FONT_20, FONT_24, FONT_32, Rect, Renderer, color::Color},
+    renderer::{FONT_16, FONT_20, FONT_24, FONT_32, Image, Rect, Renderer, Scale, color::Color},
     ui::{
         container::{Container, Direction},
+        image::ImageWidget,
         label::{Label, TextAlign},
         layout::LayoutParams,
         style::ButtonStyle,
@@ -51,6 +53,9 @@ impl Ui {
             width: 480,
             height: 320,
         };
+
+        let cover = Image::load("cover.jpg", Scale::FixedWidth(72)).expect("failed to load cover");
+
         let mut launcher = Container::new(Rect::new(0, 0, 480, 320))
             .with_padding(16)
             .with_spacing(10);
@@ -91,33 +96,50 @@ impl Ui {
          */
 
         let now_playing = Container::new(Rect::default())
-            .with_padding(14)
-            .with_spacing(4)
+            .with_padding(12)
+            .with_spacing(14)
+            .with_direction(Direction::Horizontal)
             .with_child(
-                Label::new("NOW PLAYING")
-                    .with_font(&FONT_16)
-                    .with_color(Color::rgb(130, 135, 150)),
+                ImageWidget::new(cover),
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fixed(20),
+                    width: crate::ui::layout::Dimension::Fixed(72),
+                    height: crate::ui::layout::Dimension::Fixed(72),
                 },
             )
             .with_child(
-                Label::new("Midnight City")
-                    .with_font(&FONT_32)
-                    .with_color(Color::WHITE),
+                Container::new(Rect::default())
+                    .with_direction(Direction::Vertical)
+                    .with_spacing(2)
+                    .with_child(
+                        Label::new("СЕЙЧАС ИГРАЕТ")
+                            .with_font(&FONT_16)
+                            .with_color(Color::rgb(130, 135, 150)),
+                        LayoutParams {
+                            width: crate::ui::layout::Dimension::Fill,
+                            height: crate::ui::layout::Dimension::Fixed(20),
+                        },
+                    )
+                    .with_child(
+                        Label::new("Не перегори")
+                            .with_font(&FONT_24)
+                            .with_color(Color::WHITE),
+                        LayoutParams {
+                            width: crate::ui::layout::Dimension::Fill,
+                            height: crate::ui::layout::Dimension::Fixed(32),
+                        },
+                    )
+                    .with_child(
+                        Label::new("STERVELL")
+                            .with_font(&FONT_16)
+                            .with_color(Color::rgb(170, 175, 190)),
+                        LayoutParams {
+                            width: crate::ui::layout::Dimension::Fill,
+                            height: crate::ui::layout::Dimension::Fixed(22),
+                        },
+                    ),
                 LayoutParams {
                     width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fixed(40),
-                },
-            )
-            .with_child(
-                Label::new("M83")
-                    .with_font(&FONT_20)
-                    .with_color(Color::rgb(170, 175, 190)),
-                LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fixed(28),
+                    height: crate::ui::layout::Dimension::Fill,
                 },
             );
 

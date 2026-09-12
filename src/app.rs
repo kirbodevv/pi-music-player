@@ -11,7 +11,6 @@ pub struct App<P> {
     ui: Ui,
     next_frame: Instant,
     running: bool,
-    image: Image,
 }
 
 const FRAME_TIME: Duration = Duration::from_micros(16_667);
@@ -24,7 +23,6 @@ impl<P: Platform> App<P> {
             ui: Ui::new(),
             next_frame: Instant::now(),
             running: true,
-            image: Image::load("cover.jpg", Scale::FixedWidth(150)).expect("failed to load image"),
         }
     }
 
@@ -47,8 +45,6 @@ impl<P: Platform> App<P> {
 
     fn render(&mut self) -> io::Result<()> {
         self.ui.render(&mut self.renderer);
-
-        self.renderer.draw_image(165, 20, &self.image);
 
         if let Some(dirty) = self.renderer.take_dirty() {
             self.platform.present(&self.renderer, dirty)?;
