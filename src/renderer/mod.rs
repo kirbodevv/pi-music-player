@@ -2,8 +2,11 @@ use crate::renderer::color::Color;
 
 pub mod color;
 pub mod font;
+pub mod image;
 pub mod primitives;
 pub mod text;
+
+pub use image::{Image, Scale};
 
 pub const WIDTH: usize = 480;
 pub const HEIGHT: usize = 320;
@@ -139,6 +142,10 @@ impl Renderer {
     }
 
     pub fn pixel(&mut self, x: usize, y: usize, color: Color) {
+        self.pixel_rgb565(x, y, color.to_rgb565());
+    }
+
+    fn pixel_rgb565(&mut self, x: usize, y: usize, color: u16) {
         if x >= WIDTH || y >= HEIGHT {
             return;
         }
@@ -149,7 +156,6 @@ impl Renderer {
             return;
         }
 
-        let color = color.to_rgb565();
         let index = y * WIDTH + x;
 
         if self.pixels[index] == color {

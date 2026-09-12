@@ -1,4 +1,4 @@
-use crate::renderer::{Rect, color::Color};
+use crate::renderer::{HEIGHT, Image, Rect, WIDTH, color::Color};
 
 use super::Renderer;
 
@@ -51,7 +51,6 @@ impl Renderer {
 
         let border = border.min(rect.width / 2).min(rect.height / 2);
 
-        // Сначала вся поверхность.
         self.fill_rounded_rect(rect, radius, background);
 
         if border == 0 {
@@ -149,6 +148,32 @@ impl Renderer {
             if e2 <= dx {
                 err += dx;
                 y0 = (y0 as isize + sy) as usize;
+            }
+        }
+    }
+    pub fn draw_image(&mut self, x: usize, y: usize, image: &Image) {
+        if image.width == 0 || image.height == 0 {
+            return;
+        }
+
+        for image_y in 0..image.height {
+            let screen_y = y + image_y;
+
+            if screen_y >= HEIGHT {
+                break;
+            }
+
+            for image_x in 0..image.width {
+                let screen_x = x + image_x;
+
+                if screen_x >= WIDTH {
+                    break;
+                }
+
+                let index = image_y * image.width + image_x;
+                let color = image.pixels[index];
+
+                self.pixel_rgb565(screen_x, screen_y, color);
             }
         }
     }
