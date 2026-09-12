@@ -86,6 +86,19 @@ impl Widget for Label {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        renderer.draw_text(self.rect.x, self.rect.y, &self.text, self.font, self.color);
+        let size = self.font.measure(&self.text);
+
+        let x = match self.text_align {
+            TextAlign::Left => self.rect.x,
+            TextAlign::Center => self.rect.x + (self.rect.width - size.width) / 2,
+            TextAlign::Right => self.rect.x + self.rect.width - size.width,
+        };
+        let y = match self.vertical_align {
+            VerticalAlign::Top => self.rect.y + size.height,
+            VerticalAlign::Center => self.rect.y + (self.rect.height + size.height) / 2,
+            VerticalAlign::Bottom => self.rect.y + self.rect.height,
+        };
+
+        renderer.draw_text(x, y, &self.text, self.font, self.color);
     }
 }

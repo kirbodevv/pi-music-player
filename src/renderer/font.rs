@@ -16,12 +16,33 @@ pub struct Font {
     pub glyphs: &'static [Option<Glyph>],
 }
 
+pub struct Size {
+    pub width: usize,
+    pub height: usize,
+}
+
 impl Font {
     pub fn glyph(&self, character: char) -> Option<&Glyph> {
         self.glyphs
             .iter()
             .flatten()
             .find(|glyph| glyph.character == character)
+    }
+
+    pub fn measure(&self, text: &str) -> Size {
+        let mut width = 0;
+        let mut height = 0;
+
+        for c in text.chars() {
+            let Some(glyph) = self.glyph(c) else {
+                continue;
+            };
+
+            width += glyph.advance.ceil() as usize;
+            height = height.max(glyph.height as usize);
+        }
+
+        Size { width, height }
     }
 }
 

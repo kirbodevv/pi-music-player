@@ -41,6 +41,12 @@ pub enum Screen {
 
 impl Ui {
     pub fn new() -> Self {
+        const SCREEN_RECT: Rect = Rect {
+            x: 0,
+            y: 0,
+            width: 480,
+            height: 320,
+        };
         let launcher = Container::new(Rect::new(0, 0, 480, 320))
             .with_child(
                 Button::new(Rect::new(40, 60, 180, 80))
@@ -59,16 +65,58 @@ impl Ui {
                     .on_click(Box::new(|| UiEvent::Open(Screen::Settings))),
             )
             .with_child(
-                Label::new("Hello, World!")
-                    .with_color(Color::WHITE)
-                    .with_bounds(Rect {
-                        x: 0,
-                        y: 0,
-                        width: 480,
-                        height: 320,
-                    })
+                Label::new("TL")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Left)
+                    .with_vertical_align(VerticalAlign::Top),
+            )
+            .with_child(
+                Label::new("TC")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Center)
+                    .with_vertical_align(VerticalAlign::Top),
+            )
+            .with_child(
+                Label::new("TR")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Right)
+                    .with_vertical_align(VerticalAlign::Top),
+            )
+            .with_child(
+                Label::new("CL")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Left)
+                    .with_vertical_align(VerticalAlign::Center),
+            )
+            .with_child(
+                Label::new("CC")
+                    .with_bounds(SCREEN_RECT)
                     .with_text_align(TextAlign::Center)
                     .with_vertical_align(VerticalAlign::Center),
+            )
+            .with_child(
+                Label::new("CR")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Right)
+                    .with_vertical_align(VerticalAlign::Center),
+            )
+            .with_child(
+                Label::new("BL")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Left)
+                    .with_vertical_align(VerticalAlign::Bottom),
+            )
+            .with_child(
+                Label::new("BC")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Center)
+                    .with_vertical_align(VerticalAlign::Bottom),
+            )
+            .with_child(
+                Label::new("BR")
+                    .with_bounds(SCREEN_RECT)
+                    .with_text_align(TextAlign::Right)
+                    .with_vertical_align(VerticalAlign::Bottom),
             );
 
         let music = Container::new(Rect::new(0, 0, 480, 320)).with_child(
