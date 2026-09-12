@@ -17,6 +17,8 @@ pub struct Ui {
     launcher: Container,
     music: Container,
     settings: Container,
+
+    need_to_clear: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -63,11 +65,20 @@ impl Ui {
             launcher,
             music,
             settings,
+            need_to_clear: true,
         }
     }
 
-    pub fn render(&self, renderer: &mut Renderer) {
-        renderer.clear(Color::rgb(15, 15, 20));
+    fn change_screen(&mut self, screen: Screen) {
+        self.screen = screen;
+        self.need_to_clear = true;
+    }
+
+    pub fn render(&mut self, renderer: &mut Renderer) {
+        if self.need_to_clear {
+            renderer.clear(Color::rgb(15, 15, 20));
+            self.need_to_clear = false;
+        }
 
         match self.screen {
             Screen::Launcher => self.launcher.render(renderer),
@@ -87,11 +98,11 @@ impl Ui {
             UiEvent::None => {}
 
             UiEvent::Open(screen) => {
-                self.screen = screen;
+                self.change_screen(screen);
             }
 
             UiEvent::Back => {
-                self.screen = Screen::Launcher;
+                self.change_screen(Screen::Launcher);
             }
         }
     }

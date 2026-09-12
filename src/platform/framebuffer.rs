@@ -41,11 +41,15 @@ impl Framebuffer {
         let x_end = (dirty.x + dirty.width).min(WIDTH);
         let y_end = (dirty.y + dirty.height).min(HEIGHT);
 
+        println!(
+            "Rendering dirty region: x={} y={} width={} height={}",
+            dirty.x, dirty.y, dirty.width, dirty.height
+        );
+
         let width = x_end - dirty.x;
 
         for y in dirty.y..y_end {
             let offset = y * WIDTH + dirty.x;
-
             unsafe {
                 ptr::copy_nonoverlapping(pixels.as_ptr().add(offset), self.ptr.add(offset), width);
             }

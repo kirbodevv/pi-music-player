@@ -1,7 +1,7 @@
 use crate::{
     platform::InputEvent,
     renderer::{Rect, Renderer, color::Color},
-    ui::{Ui, UiEvent, widget::Widget},
+    ui::{UiEvent, widget::Widget},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
