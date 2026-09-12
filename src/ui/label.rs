@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     event::InputEvent,
     renderer::{FONT_32, Rect, Renderer, Size, color::Color, font::Font},
@@ -6,9 +8,11 @@ use crate::{
 
 const DEFAULT_FONT: &Font = &FONT_32;
 
+pub type LabelHandle = Rc<RefCell<String>>;
+
 pub struct Label {
     rect: Rect,
-    text: String,
+    text: LabelHandle,
     color: Color,
     font: &'static Font,
     text_align: TextAlign,
@@ -35,7 +39,7 @@ impl Default for Label {
     fn default() -> Self {
         Self {
             rect: Rect::default(),
-            text: String::new(),
+            text: Rc::new(RefCell::new(String::new())),
             color: Color::WHITE,
             font: DEFAULT_FONT,
             text_align: TextAlign::default(),
@@ -47,7 +51,7 @@ impl Default for Label {
 impl Label {
     pub fn new(text: impl Into<String>) -> Self {
         Self {
-            text: text.into(),
+            text: Rc::new(RefCell::new(text.into())),
             ..Default::default()
         }
     }
@@ -74,6 +78,10 @@ impl Label {
             ..self
         }
     }
+
+    pub fn handle(&self) -> LabelHandle {
+        Rc::clone(&self.text)
+    }
 }
 
 impl Widget for Label {
@@ -82,7 +90,7 @@ impl Widget for Label {
     }
 
     fn preferred_size(&self) -> Size {
-        self.font.measure(&self.text)
+        self.font.measure(&self.text.borrow())
     }
 
     fn bounds(&self) -> Rect {
@@ -98,7 +106,9 @@ impl Widget for Label {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        let lines: Vec<&str> = self.text.lines().collect();
+        let text = self.text.borrow();
+
+        let lines: Vec<&str> = text.lines().collect();
 
         if lines.is_empty() {
             return;

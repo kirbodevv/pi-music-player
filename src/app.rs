@@ -2,7 +2,7 @@ use std::io::Error;
 use std::time::{Duration, Instant};
 use std::{io, thread};
 
-use crate::music::player::AudioPlayer;
+use crate::music::player::{AudioPlayer, PlayerState};
 use crate::{music::mpd::MpdPlayer, platform::Platform, renderer::Renderer, ui::Ui};
 
 pub struct App<P> {
@@ -12,6 +12,7 @@ pub struct App<P> {
     next_frame: Instant,
     running: bool,
     player: MpdPlayer,
+    last_player_update: Instant,
 }
 
 const FRAME_TIME: Duration = Duration::from_micros(16_667);
@@ -26,6 +27,7 @@ impl<P: Platform> App<P> {
             running: true,
             player: MpdPlayer::connect("127.0.0.1:6600")
                 .map_err(|e| Error::new(io::ErrorKind::Other, e))?,
+            last_player_update: Instant::now(),
         })
     }
 
@@ -43,30 +45,41 @@ impl<P: Platform> App<P> {
         for event in self.platform.poll_events() {
             let ui_event = self.ui.handle_input(event);
 
-            match ui_event {
-                crate::ui::UiEvent::Player(action) => {
-                    use crate::ui::PlayerAction;
+            let result = match ui_event {
+                crate::ui::UiEvent::Player(action) => match action {
+                    crate::ui::PlayerAction::Previous => self.player.previous(),
 
-                    let result = match action {
-                        PlayerAction::Previous => self.player.previous(),
-                        PlayerAction::PlayPause => {
-                            let state = self
-                                .player
-                                .state()
-                                .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+                    crate::ui::PlayerAction::PlayPause => {
+                        let state = self
+                            .player
+                            .state()
+                            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
 
-                            self.player
-                                .pause(state != crate::music::player::PlayerState::Paused)
-                        }
-                        PlayerAction::Next => self.player.next(),
-                    };
-
-                    if let Err(e) = result {
-                        eprintln!("MPD error: {e}");
+                        self.player.pause(state != PlayerState::Paused)
                     }
+
+                    crate::ui::PlayerAction::Next => self.player.next(),
+                },
+
+                _ => Ok(()),
+            };
+
+            if let Err(e) = result {
+                eprintln!("MPD error: {e}");
+            }
+        }
+
+        if self.last_player_update.elapsed() >= Duration::from_millis(250) {
+            self.last_player_update = Instant::now();
+
+            match self.player.current_track() {
+                Ok(track) => {
+                    self.ui.set_current_track(track.as_ref());
                 }
 
-                _ => {}
+                Err(e) => {
+                    eprintln!("MPD status error: {e}");
+                }
             }
         }
 
