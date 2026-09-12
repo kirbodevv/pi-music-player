@@ -1,5 +1,6 @@
 mod app;
 mod event;
+mod music;
 mod platform;
 mod renderer;
 mod ui;
@@ -17,7 +18,12 @@ fn main() {
     #[cfg(feature = "desktop")]
     let platform = Desktop::new().unwrap();
 
-    let mut app = App::new(platform);
+    let app = App::new(platform);
+
+    let Ok(mut app) = app else {
+        eprintln!("Failed to create app: {}", app.err().unwrap());
+        return;
+    };
 
     let result = app.run();
 

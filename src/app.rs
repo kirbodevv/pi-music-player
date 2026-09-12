@@ -1,9 +1,9 @@
+use std::io::Error;
 use std::time::{Duration, Instant};
 use std::{io, thread};
 
-use crate::platform::Platform;
-use crate::renderer::{Image, Scale};
-use crate::{renderer::Renderer, ui::Ui};
+use crate::music::player::AudioPlayer;
+use crate::{music::mpd::MpdPlayer, platform::Platform, renderer::Renderer, ui::Ui};
 
 pub struct App<P> {
     platform: P,
@@ -11,19 +11,22 @@ pub struct App<P> {
     ui: Ui,
     next_frame: Instant,
     running: bool,
+    player: MpdPlayer,
 }
 
 const FRAME_TIME: Duration = Duration::from_micros(16_667);
 
 impl<P: Platform> App<P> {
-    pub fn new(platform: P) -> Self {
-        Self {
+    pub fn new(platform: P) -> Result<Self, Error> {
+        Ok(Self {
             platform,
             renderer: Renderer::new(),
             ui: Ui::new(),
             next_frame: Instant::now(),
             running: true,
-        }
+            player: MpdPlayer::connect("127.0.0.1:6600")
+                .map_err(|e| Error::new(io::ErrorKind::Other, e))?,
+        })
     }
 
     pub fn run(&mut self) -> io::Result<()> {
@@ -38,8 +41,35 @@ impl<P: Platform> App<P> {
 
     fn update(&mut self) -> io::Result<()> {
         for event in self.platform.poll_events() {
-            self.ui.handle_input(event);
+            let ui_event = self.ui.handle_input(event);
+
+            match ui_event {
+                crate::ui::UiEvent::Player(action) => {
+                    use crate::ui::PlayerAction;
+
+                    let result = match action {
+                        PlayerAction::Previous => self.player.previous(),
+                        PlayerAction::PlayPause => {
+                            let state = self
+                                .player
+                                .state()
+                                .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+
+                            self.player
+                                .pause(state != crate::music::player::PlayerState::Paused)
+                        }
+                        PlayerAction::Next => self.player.next(),
+                    };
+
+                    if let Err(e) = result {
+                        eprintln!("MPD error: {e}");
+                    }
+                }
+
+                _ => {}
+            }
         }
+
         Ok(())
     }
 

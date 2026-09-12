@@ -36,6 +36,15 @@ pub enum UiEvent {
     None,
     Open(Screen),
     Back,
+
+    Player(PlayerAction),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PlayerAction {
+    Previous,
+    PlayPause,
+    Next,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -55,6 +64,8 @@ impl Ui {
         };
 
         let cover = Image::load("cover.jpg", Scale::FixedWidth(150)).unwrap_or(Image::default());
+
+        let button_style = ButtonStyle::default().with_radius(8);
 
         let mut launcher = Container::new(Rect::new(0, 0, 480, 320))
             .with_padding(16)
@@ -95,6 +106,46 @@ impl Ui {
          * NOW PLAYING
          */
 
+        let previous = Button::new()
+            .with_text("<<")
+            .with_style(button_style)
+            .on_click(Box::new(|| UiEvent::Player(PlayerAction::Previous)));
+
+        let pause_play = Button::new()
+            .with_text(">")
+            .with_style(button_style)
+            .on_click(Box::new(|| UiEvent::Player(PlayerAction::PlayPause)));
+
+        let next = Button::new()
+            .with_text(">>")
+            .with_style(button_style)
+            .on_click(Box::new(|| UiEvent::Player(PlayerAction::Next)));
+
+        let controll_panel = Container::new(Rect::default())
+            .with_direction(Direction::Horizontal)
+            .with_spacing(8)
+            .with_child(
+                previous,
+                LayoutParams {
+                    width: Dimension::Fixed(48),
+                    height: Dimension::Fixed(36),
+                },
+            )
+            .with_child(
+                pause_play,
+                LayoutParams {
+                    width: Dimension::Fixed(56),
+                    height: Dimension::Fixed(36),
+                },
+            )
+            .with_child(
+                next,
+                LayoutParams {
+                    width: Dimension::Fixed(48),
+                    height: Dimension::Fixed(36),
+                },
+            );
+
         let now_playing = Container::new(Rect::default())
             .with_padding(12)
             .with_spacing(14)
@@ -114,7 +165,7 @@ impl Ui {
             .with_child(
                 Container::new(Rect::default())
                     .with_direction(Direction::Vertical)
-                    .with_spacing(2)
+                    .with_spacing(4)
                     .with_child(
                         Label::new("СЕЙЧАС ИГРАЕТ")
                             .with_font(&FONT_16)
@@ -141,18 +192,22 @@ impl Ui {
                             width: Dimension::Fill,
                             height: Dimension::Fixed(22),
                         },
+                    )
+                    .with_child(
+                        controll_panel,
+                        LayoutParams {
+                            width: Dimension::Fill,
+                            height: Dimension::Fill,
+                        },
                     ),
                 LayoutParams {
                     width: Dimension::Fill,
                     height: Dimension::Fill,
                 },
             );
-
         /*
          * APPLICATIONS
          */
-
-        let button_style = ButtonStyle::default().with_radius(8);
 
         let music = Button::new()
             .with_text("MUSIC")
@@ -239,23 +294,25 @@ impl Ui {
         }
     }
 
-    pub fn handle_input(&mut self, event: InputEvent) {
+    pub fn handle_input(&mut self, event: InputEvent) -> UiEvent {
         let ui_event = match self.screen {
             Screen::Launcher => self.launcher.handle_input(&event),
             Screen::Music => self.music.handle_input(&event),
             Screen::Settings => self.settings.handle_input(&event),
         };
 
-        match ui_event {
-            UiEvent::None => {}
+        match &ui_event {
+            UiEvent::None | UiEvent::Player(_) => {}
 
             UiEvent::Open(screen) => {
-                self.change_screen(screen);
+                self.change_screen(screen.clone());
             }
 
             UiEvent::Back => {
                 self.change_screen(Screen::Launcher);
             }
         }
+
+        ui_event
     }
 }
