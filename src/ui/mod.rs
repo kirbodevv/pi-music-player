@@ -1,7 +1,8 @@
-mod button;
-mod container;
-mod label;
-mod widget;
+pub mod button;
+pub mod container;
+pub mod label;
+pub mod layout;
+pub mod widget;
 
 use crate::{
     event::InputEvent,
@@ -9,6 +10,7 @@ use crate::{
     ui::{
         container::Container,
         label::{Label, TextAlign, VerticalAlign},
+        layout::{Dimension, LayoutParams},
         widget::Widget,
     },
 };
@@ -48,72 +50,30 @@ impl Ui {
             height: 320,
         };
         let launcher = Container::new(Rect::new(0, 0, 480, 320))
-            .with_padding(10)
-            .with_spacing(8)
+            .with_padding(67)
+            .with_spacing(42)
             .with_child(
                 Button::new()
                     .with_color(Color::RED, Color::MAGENTA)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Music)))
-                    .with_bounds(Rect::new(0, 0, 0, 50)),
+                    .on_click(Box::new(|| UiEvent::Open(Screen::Music))),
+                LayoutParams {
+                    width: Dimension::Fill,
+                    height: Dimension::Fill,
+                },
             )
             .with_child(
                 Button::new()
-                    .with_color(Color::BLACK, Color::GRAY)
-                    .with_bounds(Rect::new(0, 0, 0, 50)),
-            )
-            .with_child(
-                Button::new()
-                    .with_color(Color::BLUE, Color::CYAN)
-                    .with_bounds(Rect::new(0, 0, 0, 50)),
-            )
-            .with_child(
-                Button::new()
-                    .with_color(Color::YELLOW, Color::WHITE)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Settings)))
-                    .with_bounds(Rect::new(0, 0, 0, 50)),
+                    .with_color(Color::RED, Color::MAGENTA)
+                    .on_click(Box::new(|| UiEvent::Open(Screen::Settings))),
+                LayoutParams {
+                    width: Dimension::Fill,
+                    height: Dimension::Fill,
+                },
             );
 
-        let music = Container::new(Rect::new(0, 0, 480, 320))
-            .with_padding(10)
-            .with_spacing(8)
-            .with_child(
-                Label::new("Музыка")
-                    .with_text_align(TextAlign::Center)
-                    .with_vertical_align(VerticalAlign::Top)
-                    .with_bounds(Rect {
-                        x: 0,
-                        y: 0,
-                        width: 100,
-                        height: 100,
-                    }),
-            )
-            .with_child(
-                Button::new()
-                    .with_color(Color::RED, Color::MAGENTA)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Launcher)))
-                    .with_bounds(Rect::new(0, 0, 100, 100)),
-            );
+        let music = Container::new(Rect::new(0, 0, 480, 320));
 
-        let settings = Container::new(Rect::new(0, 0, 480, 320))
-            .with_padding(10)
-            .with_spacing(8)
-            .with_child(
-                Label::new("Настройки")
-                    .with_bounds(Rect {
-                        x: 0,
-                        y: 0,
-                        width: 100,
-                        height: 100,
-                    })
-                    .with_text_align(TextAlign::Center)
-                    .with_vertical_align(VerticalAlign::Top),
-            )
-            .with_child(
-                Button::new()
-                    .with_color(Color::RED, Color::MAGENTA)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Launcher)))
-                    .with_bounds(Rect::new(0, 0, 100, 100)),
-            );
+        let settings = Container::new(Rect::new(0, 0, 480, 320));
 
         Self {
             screen: Screen::Launcher,

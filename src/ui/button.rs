@@ -1,7 +1,7 @@
 use crate::{
     event::InputEvent,
     renderer::{Rect, Renderer, color::Color},
-    ui::{UiEvent, widget::Widget},
+    ui::{UiEvent, layout::LayoutParams, widget::Widget},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -64,6 +64,10 @@ impl Button {
 }
 
 impl Widget for Button {
+    fn layout_params(&self) -> LayoutParams {
+        LayoutParams::default()
+    }
+
     fn bounds(&self) -> Rect {
         self.rect
     }

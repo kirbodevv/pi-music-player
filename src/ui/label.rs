@@ -1,7 +1,7 @@
 use crate::{
     event::InputEvent,
     renderer::{FONT_32, Rect, Renderer, color::Color, font::Font},
-    ui::{UiEvent, widget::Widget},
+    ui::{UiEvent, layout::LayoutParams, widget::Widget},
 };
 
 const DEFAULT_FONT: &Font = &FONT_32;
@@ -77,6 +77,10 @@ impl Label {
 }
 
 impl Widget for Label {
+    fn layout_params(&self) -> LayoutParams {
+        LayoutParams::default()
+    }
+
     fn bounds(&self) -> Rect {
         self.rect
     }

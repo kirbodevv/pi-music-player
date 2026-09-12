@@ -3,13 +3,27 @@ use std::time::Duration;
 use crate::{
     event::InputEvent,
     renderer::{Rect, Renderer},
-    ui::{UiEvent, widget::Widget},
+    ui::{
+        UiEvent,
+        layout::{Dimension, LayoutParams},
+        widget::Widget,
+    },
 };
+
+pub enum Direction {
+    Vertical,
+    Horizontal,
+}
+
+pub struct Child {
+    widget: Box<dyn Widget>,
+    layout: LayoutParams,
+}
 
 pub struct Container {
     rect: Rect,
-    children: Vec<Box<dyn Widget>>,
-
+    children: Vec<Child>,
+    direction: Direction,
     spacing: usize,
     padding: usize,
 }
@@ -19,14 +33,26 @@ impl Container {
         Self {
             rect,
             children: Vec::new(),
+            direction: Direction::Vertical,
             spacing: 0,
             padding: 0,
         }
     }
 
-    pub fn with_child<W: Widget + 'static>(mut self, widget: W) -> Self {
-        self.children.push(Box::new(widget));
-        self.layout_vertical();
+    pub fn with_child<W: Widget + 'static>(mut self, widget: W, layout: LayoutParams) -> Self {
+        self.children.push(Child {
+            widget: Box::new(widget),
+            layout,
+        });
+        match self.direction {
+            Direction::Vertical => self.layout_vertical(),
+            Direction::Horizontal => {}
+        }
+        self
+    }
+
+    pub fn with_direction(mut self, direction: Direction) -> Self {
+        self.direction = direction;
         self
     }
 
@@ -41,24 +67,79 @@ impl Container {
     }
 
     fn layout_vertical(&mut self) {
+        let inner_height = self.rect.height.saturating_sub(self.padding * 2);
+
+        let spacing_total = self
+            .spacing
+            .saturating_mul(self.children.len().saturating_sub(1));
+
+        let available_height = inner_height.saturating_sub(spacing_total);
+
+        let mut fixed_height = 0;
+        let mut fill_count = 0;
+
+        for child in &self.children {
+            match child.layout.height {
+                Dimension::Fixed(height) => {
+                    fixed_height += height;
+                }
+
+                Dimension::Auto => {
+                    fixed_height += child.widget.bounds().height;
+                }
+
+                Dimension::Fill => {
+                    fill_count += 1;
+                }
+            }
+        }
+
+        let remaining_height = available_height.saturating_sub(fixed_height);
+
+        let fill_height = if fill_count > 0 {
+            remaining_height / fill_count
+        } else {
+            0
+        };
+
         let mut y = self.rect.y + self.padding;
 
         for child in &mut self.children {
-            let bounds = child.bounds();
+            let old_bounds = child.widget.bounds();
 
-            child.set_bounds(Rect {
+            let height = match child.layout.height {
+                Dimension::Fixed(height) => height,
+
+                Dimension::Auto => old_bounds.height,
+
+                Dimension::Fill => fill_height,
+            };
+
+            let width = match child.layout.width {
+                Dimension::Fixed(width) => width,
+
+                Dimension::Auto | Dimension::Fill => {
+                    self.rect.width.saturating_sub(self.padding * 2)
+                }
+            };
+
+            child.widget.set_bounds(Rect {
                 x: self.rect.x + self.padding,
                 y,
-                width: self.rect.width.saturating_sub(self.padding * 2),
-                height: bounds.height,
+                width,
+                height,
             });
 
-            y += bounds.height + self.spacing;
+            y += height + self.spacing;
         }
     }
 }
 
 impl Widget for Container {
+    fn layout_params(&self) -> LayoutParams {
+        LayoutParams::default()
+    }
+
     fn bounds(&self) -> Rect {
         self.rect
     }
@@ -70,12 +151,13 @@ impl Widget for Container {
 
     fn handle_input(&mut self, event: &InputEvent) -> UiEvent {
         for child in self.children.iter_mut().rev() {
-            let event = child.handle_input(event);
+            let event = child.widget.handle_input(event);
 
             if event != UiEvent::None {
                 return event;
             }
         }
+
         UiEvent::None
     }
 
@@ -84,14 +166,14 @@ impl Widget for Container {
 
         renderer.with_clip(bounds, |renderer| {
             for child in &self.children {
-                child.render(renderer);
+                child.widget.render(renderer);
             }
         });
     }
 
     fn update(&mut self, dt: Duration) {
         for child in &mut self.children {
-            child.update(dt);
+            child.widget.update(dt);
         }
     }
 }
