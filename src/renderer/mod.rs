@@ -31,6 +31,20 @@ impl Rect {
     pub fn contains(&self, x: usize, y: usize) -> bool {
         x >= self.x && x < self.x + self.width && y >= self.y && y < self.y + self.height
     }
+
+    pub fn intersection(self, other: Rect) -> Rect {
+        let x1 = self.x.max(other.x);
+        let y1 = self.y.max(other.y);
+
+        let x2 = (self.x + self.width).min(other.x + other.width);
+        let y2 = (self.y + self.height).min(other.y + other.height);
+
+        if x2 <= x1 || y2 <= y1 {
+            return Rect::new(x1, y1, 0, 0);
+        }
+
+        Rect::new(x1, y1, x2 - x1, y2 - y1)
+    }
 }
 
 pub struct Renderer {
@@ -41,6 +55,8 @@ pub struct Renderer {
     dirty_min_y: usize,
     dirty_max_x: usize,
     dirty_max_y: usize,
+
+    clip_rect: Rect,
 }
 
 impl Renderer {
@@ -53,7 +69,19 @@ impl Renderer {
             dirty_min_y: HEIGHT,
             dirty_max_x: 0,
             dirty_max_y: 0,
+
+            clip_rect: Rect::new(0, 0, WIDTH, HEIGHT),
         }
+    }
+
+    pub fn with_clip<F>(&mut self, rect: Rect, f: F)
+    where
+        F: FnOnce(&mut Self),
+    {
+        let previous = self.clip_rect;
+        self.clip_rect = self.clip_rect.intersection(rect);
+        f(self);
+        self.clip_rect = previous;
     }
 
     pub fn pixels(&self) -> &[u16] {
@@ -107,6 +135,12 @@ impl Renderer {
 
     pub fn pixel(&mut self, x: usize, y: usize, color: Color) {
         if x >= WIDTH || y >= HEIGHT {
+            return;
+        }
+
+        let clip = self.clip_rect;
+
+        if x < clip.x || y < clip.y || x >= clip.x + clip.width || y >= clip.y + clip.height {
             return;
         }
 

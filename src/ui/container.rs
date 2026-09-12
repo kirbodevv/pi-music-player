@@ -42,9 +42,13 @@ impl Widget for Container {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        for child in &self.children {
-            child.render(renderer);
-        }
+        let bounds = self.bounds();
+
+        renderer.with_clip(bounds, |renderer| {
+            for child in &self.children {
+                child.render(renderer);
+            }
+        });
     }
 
     fn update(&mut self, dt: Duration) {
