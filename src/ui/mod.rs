@@ -13,7 +13,7 @@ use crate::{
         container::{Container, Direction},
         image::ImageWidget,
         label::{Label, TextAlign},
-        layout::LayoutParams,
+        layout::{Dimension, LayoutParams},
         style::{ButtonStyle, ContainerStyle},
         widget::Widget,
     },
@@ -54,7 +54,7 @@ impl Ui {
             height: 320,
         };
 
-        let cover = Image::load("cover.jpg", Scale::FixedWidth(72)).unwrap_or(Image::default());
+        let cover = Image::load("cover.jpg", Scale::FixedWidth(150)).unwrap_or(Image::default());
 
         let mut launcher = Container::new(Rect::new(0, 0, 480, 320))
             .with_padding(16)
@@ -64,7 +64,7 @@ impl Ui {
          * HEADER
          */
 
-        let title = Label::new("MY DEVICE")
+        let title = Label::new("Main Menu")
             .with_font(&FONT_24)
             .with_color(Color::rgb(240, 240, 245));
 
@@ -79,15 +79,15 @@ impl Ui {
             .with_child(
                 title,
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fixed(32),
+                    width: Dimension::Fill,
+                    height: Dimension::Fixed(32),
                 },
             )
             .with_child(
                 status,
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Auto,
-                    height: crate::ui::layout::Dimension::Fixed(32),
+                    width: Dimension::Auto,
+                    height: Dimension::Fixed(32),
                 },
             );
 
@@ -107,8 +107,8 @@ impl Ui {
             .with_child(
                 ImageWidget::new(cover),
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Fixed(72),
-                    height: crate::ui::layout::Dimension::Fixed(72),
+                    width: Dimension::Fixed(150),
+                    height: Dimension::Fixed(150),
                 },
             )
             .with_child(
@@ -120,8 +120,8 @@ impl Ui {
                             .with_font(&FONT_16)
                             .with_color(Color::rgb(130, 135, 150)),
                         LayoutParams {
-                            width: crate::ui::layout::Dimension::Fill,
-                            height: crate::ui::layout::Dimension::Fixed(20),
+                            width: Dimension::Fill,
+                            height: Dimension::Fixed(20),
                         },
                     )
                     .with_child(
@@ -129,8 +129,8 @@ impl Ui {
                             .with_font(&FONT_24)
                             .with_color(Color::WHITE),
                         LayoutParams {
-                            width: crate::ui::layout::Dimension::Fill,
-                            height: crate::ui::layout::Dimension::Fixed(32),
+                            width: Dimension::Fill,
+                            height: Dimension::Fixed(32),
                         },
                     )
                     .with_child(
@@ -138,13 +138,13 @@ impl Ui {
                             .with_font(&FONT_16)
                             .with_color(Color::rgb(170, 175, 190)),
                         LayoutParams {
-                            width: crate::ui::layout::Dimension::Fill,
-                            height: crate::ui::layout::Dimension::Fixed(22),
+                            width: Dimension::Fill,
+                            height: Dimension::Fixed(22),
                         },
                     ),
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fill,
+                    width: Dimension::Fill,
+                    height: Dimension::Fill,
                 },
             );
 
@@ -157,50 +157,28 @@ impl Ui {
         let music = Button::new()
             .with_text("MUSIC")
             .with_style(button_style)
-            .on_click(Box::new(|| UiEvent::Open(crate::ui::Screen::Music)));
+            .on_click(Box::new(|| UiEvent::Open(Screen::Music)));
 
         let settings = Button::new()
             .with_text("SETTINGS")
             .with_style(button_style)
-            .on_click(Box::new(|| UiEvent::Open(crate::ui::Screen::Settings)));
+            .on_click(Box::new(|| UiEvent::Open(Screen::Settings)));
 
-        let files = Button::new().with_text("FILES").with_style(button_style);
-
-        let about = Button::new().with_text("ABOUT").with_style(button_style);
-
-        let row1 = Container::new(Rect::default())
+        let row = Container::new(Rect::default())
             .with_direction(Direction::Horizontal)
             .with_spacing(10)
             .with_child(
                 music,
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fill,
+                    width: Dimension::Fill,
+                    height: Dimension::Fill,
                 },
             )
             .with_child(
                 settings,
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fill,
-                },
-            );
-
-        let row2 = Container::new(Rect::default())
-            .with_direction(Direction::Horizontal)
-            .with_spacing(10)
-            .with_child(
-                files,
-                LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fill,
-                },
-            )
-            .with_child(
-                about,
-                LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fill,
+                    width: Dimension::Fill,
+                    height: Dimension::Fill,
                 },
             );
 
@@ -212,29 +190,22 @@ impl Ui {
             .with_child(
                 header,
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fixed(32),
+                    width: Dimension::Fill,
+                    height: Dimension::Fixed(32),
                 },
             )
             .with_child(
                 now_playing,
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fixed(105),
+                    width: Dimension::Fill,
+                    height: Dimension::Fixed(185),
                 },
             )
             .with_child(
-                row1,
+                row,
                 LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fill,
-                },
-            )
-            .with_child(
-                row2,
-                LayoutParams {
-                    width: crate::ui::layout::Dimension::Fill,
-                    height: crate::ui::layout::Dimension::Fill,
+                    width: Dimension::Fill,
+                    height: Dimension::Fill,
                 },
             );
 
