@@ -2,6 +2,7 @@ pub mod button;
 pub mod container;
 pub mod label;
 pub mod layout;
+pub mod style;
 pub mod widget;
 
 use crate::{
@@ -11,6 +12,7 @@ use crate::{
         container::{Container, Direction},
         label::{Label, TextAlign},
         layout::LayoutParams,
+        style::ButtonStyle,
         widget::Widget,
     },
 };
@@ -123,23 +125,21 @@ impl Ui {
          * APPLICATIONS
          */
 
+        let button_style = ButtonStyle::default().with_radius(8);
+
         let music = Button::new()
             .with_text("MUSIC")
-            .with_color(Color::rgb(55, 60, 75), Color::rgb(85, 90, 115))
+            .with_style(button_style)
             .on_click(Box::new(|| UiEvent::Open(crate::ui::Screen::Music)));
 
         let settings = Button::new()
             .with_text("SETTINGS")
-            .with_color(Color::rgb(55, 60, 75), Color::rgb(85, 90, 115))
+            .with_style(button_style)
             .on_click(Box::new(|| UiEvent::Open(crate::ui::Screen::Settings)));
 
-        let files = Button::new()
-            .with_text("FILES")
-            .with_color(Color::rgb(55, 60, 75), Color::rgb(85, 90, 115));
+        let files = Button::new().with_text("FILES").with_style(button_style);
 
-        let about = Button::new()
-            .with_text("ABOUT")
-            .with_color(Color::rgb(55, 60, 75), Color::rgb(85, 90, 115));
+        let about = Button::new().with_text("ABOUT").with_style(button_style);
 
         let row1 = Container::new(Rect::default())
             .with_direction(Direction::Horizontal)

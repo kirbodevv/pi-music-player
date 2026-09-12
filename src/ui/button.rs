@@ -5,6 +5,7 @@ use crate::{
         UiEvent,
         label::{Label, TextAlign, VerticalAlign},
         layout::LayoutParams,
+        style::ButtonStyle,
         widget::Widget,
     },
 };
@@ -22,8 +23,7 @@ pub struct Button {
     label: Option<Label>,
     callback: Option<Box<dyn Fn() -> UiEvent>>,
 
-    normal_color: Color,
-    pressed_color: Color,
+    style: ButtonStyle,
 }
 
 impl Button {
@@ -33,8 +33,7 @@ impl Button {
             state: ButtonState::Normal,
             label: None,
             callback: None,
-            normal_color: Color::rgb(60, 60, 70),
-            pressed_color: Color::rgb(100, 100, 120),
+            style: ButtonStyle::default(),
         }
     }
 
@@ -48,9 +47,8 @@ impl Button {
         self
     }
 
-    pub fn with_color(mut self, normal_color: Color, pressed_color: Color) -> Self {
-        self.normal_color = normal_color;
-        self.pressed_color = pressed_color;
+    pub fn with_style(mut self, style: ButtonStyle) -> Self {
+        self.style = style;
         self
     }
 
@@ -76,6 +74,115 @@ impl Button {
             callback()
         } else {
             UiEvent::None
+        }
+    }
+
+    fn render_rounded_button(&self, renderer: &mut Renderer) {
+        let (background, light, dark) = match self.state {
+            ButtonState::Normal => (self.style.background, self.style.light, self.style.dark),
+
+            ButtonState::Pressed => (
+                self.style.pressed_background,
+                self.style.pressed_light,
+                self.style.pressed_dark,
+            ),
+        };
+
+        renderer.draw_rounded_rect_3d(
+            self.rect,
+            self.style.radius,
+            self.style.border_width,
+            background,
+            light,
+            dark,
+        );
+
+        if let Some(label) = &self.label {
+            label.render(renderer);
+        }
+    }
+
+    fn render_square_button(&self, renderer: &mut Renderer) {
+        let (background, light, dark) = match self.state {
+            ButtonState::Normal => (self.style.background, self.style.light, self.style.dark),
+
+            ButtonState::Pressed => (
+                self.style.pressed_background,
+                self.style.pressed_light,
+                self.style.pressed_dark,
+            ),
+        };
+
+        renderer.fill_rect(self.rect, background);
+
+        match self.state {
+            ButtonState::Normal => {
+                renderer.fill_rect(
+                    Rect::new(self.rect.x, self.rect.y, self.rect.width, 2),
+                    light,
+                );
+
+                renderer.fill_rect(
+                    Rect::new(self.rect.x, self.rect.y, 2, self.rect.height),
+                    light,
+                );
+
+                renderer.fill_rect(
+                    Rect::new(
+                        self.rect.x,
+                        self.rect.y + self.rect.height.saturating_sub(2),
+                        self.rect.width,
+                        2,
+                    ),
+                    dark,
+                );
+
+                renderer.fill_rect(
+                    Rect::new(
+                        self.rect.x + self.rect.width.saturating_sub(2),
+                        self.rect.y,
+                        2,
+                        self.rect.height,
+                    ),
+                    dark,
+                );
+            }
+
+            ButtonState::Pressed => {
+                renderer.fill_rect(
+                    Rect::new(self.rect.x, self.rect.y, self.rect.width, 2),
+                    dark,
+                );
+
+                renderer.fill_rect(
+                    Rect::new(self.rect.x, self.rect.y, 2, self.rect.height),
+                    dark,
+                );
+
+                renderer.fill_rect(
+                    Rect::new(
+                        self.rect.x,
+                        self.rect.y + self.rect.height.saturating_sub(2),
+                        self.rect.width,
+                        2,
+                    ),
+                    light,
+                );
+
+                renderer.fill_rect(
+                    Rect::new(
+                        self.rect.x + self.rect.width.saturating_sub(2),
+                        self.rect.y,
+                        2,
+                        self.rect.height,
+                    ),
+                    light,
+                );
+            }
+        }
+
+        if let Some(label) = &self.label {
+            label.render(renderer);
         }
     }
 }
@@ -136,15 +243,10 @@ impl Widget for Button {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        let color = match self.state {
-            ButtonState::Normal => self.normal_color,
-            ButtonState::Pressed => self.pressed_color,
-        };
-
-        renderer.fill_rect(self.rect, color);
-
-        if let Some(label) = &self.label {
-            label.render(renderer);
+        if self.style.radius > 0 {
+            self.render_rounded_button(renderer);
+        } else {
+            self.render_square_button(renderer);
         }
     }
 }
