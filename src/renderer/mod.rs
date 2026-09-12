@@ -10,6 +10,11 @@ pub const HEIGHT: usize = 320;
 
 pub use font::{FONT_12, FONT_16, FONT_20, FONT_24, FONT_32};
 
+pub struct Size {
+    pub width: usize,
+    pub height: usize,
+}
+
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Rect {
     pub x: usize,

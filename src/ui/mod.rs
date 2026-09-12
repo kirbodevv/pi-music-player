@@ -50,26 +50,10 @@ impl Ui {
             height: 320,
         };
         let launcher = Container::new(Rect::new(0, 0, 480, 320))
-            .with_padding(67)
-            .with_spacing(42)
-            .with_child(
-                Button::new()
-                    .with_color(Color::RED, Color::MAGENTA)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Music))),
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fill,
-                },
-            )
-            .with_child(
-                Button::new()
-                    .with_color(Color::RED, Color::MAGENTA)
-                    .on_click(Box::new(|| UiEvent::Open(Screen::Settings))),
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fill,
-                },
-            );
+            .with_padding(20)
+            .with_spacing(10)
+            .with_child(Label::new("Music"), LayoutParams::auto())
+            .with_child(Button::new().with_text("Play"), LayoutParams::fill());
 
         let music = Container::new(Rect::new(0, 0, 480, 320));
 

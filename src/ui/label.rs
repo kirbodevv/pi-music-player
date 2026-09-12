@@ -1,6 +1,6 @@
 use crate::{
     event::InputEvent,
-    renderer::{FONT_32, Rect, Renderer, color::Color, font::Font},
+    renderer::{FONT_32, Rect, Renderer, Size, color::Color, font::Font},
     ui::{UiEvent, layout::LayoutParams, widget::Widget},
 };
 
@@ -79,6 +79,10 @@ impl Label {
 impl Widget for Label {
     fn layout_params(&self) -> LayoutParams {
         LayoutParams::default()
+    }
+
+    fn preferred_size(&self) -> Size {
+        self.font.measure(&self.text)
     }
 
     fn bounds(&self) -> Rect {

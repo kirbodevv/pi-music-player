@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::renderer::Size;
+
 #[derive(Debug)]
 pub struct Glyph {
     pub character: char,
@@ -14,11 +16,6 @@ pub struct Glyph {
 pub struct Font {
     pub size: u32,
     pub glyphs: &'static [Option<Glyph>],
-}
-
-pub struct Size {
-    pub width: usize,
-    pub height: usize,
 }
 
 impl Font {

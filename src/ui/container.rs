@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::{
     event::InputEvent,
-    renderer::{Rect, Renderer},
+    renderer::{Rect, Renderer, Size},
     ui::{
         UiEvent,
         layout::{Dimension, LayoutParams},
@@ -85,7 +85,7 @@ impl Container {
                 }
 
                 Dimension::Auto => {
-                    fixed_height += child.widget.bounds().height;
+                    fixed_height += child.widget.preferred_size().height;
                 }
 
                 Dimension::Fill => {
@@ -105,12 +105,10 @@ impl Container {
         let mut y = self.rect.y + self.padding;
 
         for child in &mut self.children {
-            let old_bounds = child.widget.bounds();
-
             let height = match child.layout.height {
                 Dimension::Fixed(height) => height,
 
-                Dimension::Auto => old_bounds.height,
+                Dimension::Auto => child.widget.preferred_size().height,
 
                 Dimension::Fill => fill_height,
             };
@@ -138,6 +136,13 @@ impl Container {
 impl Widget for Container {
     fn layout_params(&self) -> LayoutParams {
         LayoutParams::default()
+    }
+
+    fn preferred_size(&self) -> Size {
+        Size {
+            width: self.rect.width,
+            height: self.rect.height,
+        }
     }
 
     fn bounds(&self) -> Rect {

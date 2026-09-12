@@ -1,7 +1,12 @@
 use crate::{
     event::InputEvent,
-    renderer::{Rect, Renderer, color::Color},
-    ui::{UiEvent, layout::LayoutParams, widget::Widget},
+    renderer::{Rect, Renderer, Size, color::Color},
+    ui::{
+        UiEvent,
+        label::{Label, TextAlign, VerticalAlign},
+        layout::LayoutParams,
+        widget::Widget,
+    },
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -14,6 +19,7 @@ pub struct Button {
     rect: Rect,
     state: ButtonState,
 
+    label: Option<Label>,
     callback: Option<Box<dyn Fn() -> UiEvent>>,
 
     normal_color: Color,
@@ -25,10 +31,21 @@ impl Button {
         Self {
             rect: Rect::new(0, 0, 0, 0),
             state: ButtonState::Normal,
+            label: None,
             callback: None,
             normal_color: Color::rgb(60, 60, 70),
             pressed_color: Color::rgb(100, 100, 120),
         }
+    }
+
+    pub fn with_text(mut self, text: &str) -> Self {
+        let mut label = Label::new(text)
+            .with_text_align(TextAlign::Center)
+            .with_vertical_align(VerticalAlign::Center);
+
+        label.set_bounds(self.rect);
+        self.label = Some(label);
+        self
     }
 
     pub fn with_color(mut self, normal_color: Color, pressed_color: Color) -> Self {
@@ -50,7 +67,7 @@ impl Button {
     }
 
     pub fn with_bounds(mut self, rect: Rect) -> Self {
-        self.rect = rect;
+        self.set_bounds(rect);
         self
     }
 
@@ -68,12 +85,25 @@ impl Widget for Button {
         LayoutParams::default()
     }
 
+    fn preferred_size(&self) -> Size {
+        let bounds = self.bounds();
+
+        Size {
+            width: bounds.width,
+            height: bounds.height,
+        }
+    }
+
     fn bounds(&self) -> Rect {
         self.rect
     }
 
     fn set_bounds(&mut self, rect: Rect) {
         self.rect = rect;
+
+        if let Some(label) = &mut self.label {
+            label.set_bounds(rect);
+        }
     }
 
     fn handle_input(&mut self, event: &InputEvent) -> UiEvent {
@@ -112,5 +142,9 @@ impl Widget for Button {
         };
 
         renderer.fill_rect(self.rect, color);
+
+        if let Some(label) = &self.label {
+            label.render(renderer);
+        }
     }
 }
