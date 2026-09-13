@@ -1,3 +1,4 @@
+use std::io::{Read, Write};
 use std::time::Duration;
 
 use mpd::error::Error;
@@ -7,15 +8,20 @@ use crate::music::library::MusicLibrary;
 use crate::music::player::{AudioPlayer, PlayerState};
 use crate::music::track::Track;
 
-pub struct MpdPlayer {
-    client: Client,
+pub struct MpdPlayer<S>
+where
+    S: Read + Write,
+{
+    client: Client<S>,
     pub library: MusicLibrary,
 }
 
-impl MpdPlayer {
-    pub fn connect(address: &str) -> Result<Self, Error> {
-        let mut client = Client::connect(address)?;
-
+impl<S> MpdPlayer<S>
+where
+    S: Read + Write,
+{
+    pub fn connect(stream: S) -> Result<Self, Error> {
+        let mut client = Client::new(stream)?;
         let music_directory = client.music_directory()?;
 
         Ok(Self {
@@ -25,7 +31,10 @@ impl MpdPlayer {
     }
 }
 
-impl AudioPlayer for MpdPlayer {
+impl<S> AudioPlayer for MpdPlayer<S>
+where
+    S: Read + Write,
+{
     type Error = mpd::error::Error;
 
     fn play(&mut self) -> Result<(), mpd::error::Error> {

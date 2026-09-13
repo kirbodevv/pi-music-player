@@ -1,32 +1,34 @@
-use std::io::Error;
+use std::io::{Error, Read, Write};
 use std::time::{Duration, Instant};
 use std::{io, thread};
 
 use crate::music::player::{AudioPlayer, PlayerState};
 use crate::{music::mpd::MpdPlayer, platform::Platform, renderer::Renderer, ui::Ui};
 
-pub struct App<P> {
+pub struct App<P, S>
+where
+    S: Read + Write,
+{
     platform: P,
     renderer: Renderer,
     ui: Ui,
     next_frame: Instant,
     running: bool,
-    player: MpdPlayer,
+    player: MpdPlayer<S>,
     last_player_update: Instant,
 }
 
 const FRAME_TIME: Duration = Duration::from_micros(16_667);
 
-impl<P: Platform> App<P> {
-    pub fn new(platform: P) -> Result<Self, Error> {
+impl<P: Platform, S: Read + Write> App<P, S> {
+    pub fn new(platform: P, stream: S) -> Result<Self, Error> {
         Ok(Self {
             platform,
             renderer: Renderer::new(),
             ui: Ui::new(),
             next_frame: Instant::now(),
             running: true,
-            player: MpdPlayer::connect("127.0.0.1:6600")
-                .map_err(|e| Error::new(io::ErrorKind::Other, e))?,
+            player: MpdPlayer::connect(stream).map_err(|e| Error::new(io::ErrorKind::Other, e))?,
             last_player_update: Instant::now(),
         })
     }

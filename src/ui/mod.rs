@@ -6,6 +6,8 @@ pub mod layout;
 pub mod style;
 pub mod widget;
 
+use std::io::{Read, Write};
+
 use crate::{
     event::InputEvent,
     music::{mpd::MpdPlayer, track::Track},
@@ -331,7 +333,11 @@ impl Ui {
         ui_event
     }
 
-    pub fn set_current_track(&mut self, track: Option<&Track>, player: &MpdPlayer) {
+    pub fn set_current_track(
+        &mut self,
+        track: Option<&Track>,
+        player: &MpdPlayer<impl Read + Write>,
+    ) {
         let mut title = self.now_playing_title.borrow_mut();
         let mut artist = self.now_playing_artist.borrow_mut();
 

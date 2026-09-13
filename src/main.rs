@@ -6,19 +6,34 @@ pub mod renderer;
 pub mod ui;
 
 use app::App;
-#[cfg(feature = "desktop")]
-use platform::desktop::Desktop;
-
-#[cfg(feature = "raspberry")]
-use platform::raspberry::Raspberry;
 
 fn main() {
     #[cfg(feature = "raspberry")]
-    let platform = Raspberry::new().unwrap();
-    #[cfg(feature = "desktop")]
-    let platform = Desktop::new().unwrap();
+    let (platform, stream) = {
+        use platform::raspberry::Raspberry;
+        use std::os::unix::net::UnixStream;
+        (
+            Raspberry::new().unwrap(),
+            UnixStream::connect("/run/mpd/socket"),
+        )
+    };
 
-    let app = App::new(platform);
+    #[cfg(feature = "desktop")]
+    let (platform, stream) = {
+        use platform::desktop::Desktop;
+        use std::net::TcpStream;
+        (
+            Desktop::new().unwrap(),
+            TcpStream::connect("127.0.0.1:6600"),
+        )
+    };
+
+    let Ok(stream) = stream else {
+        eprintln!("Failed to connect to MPD: {}", stream.err().unwrap());
+        return;
+    };
+
+    let app = App::new(platform, stream);
 
     let Ok(mut app) = app else {
         eprintln!("Failed to create app: {}", app.err().unwrap());
