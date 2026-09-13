@@ -8,11 +8,11 @@ pub mod widget;
 
 use crate::{
     event::InputEvent,
-    music::track::Track,
+    music::{mpd::MpdPlayer, track::Track},
     renderer::{FONT_16, FONT_20, FONT_24, FONT_32, Image, Rect, Renderer, Scale, color::Color},
     ui::{
         container::{Container, Direction},
-        image::ImageWidget,
+        image::{ImageHandle, ImageWidget},
         label::{Label, LabelHandle, TextAlign},
         layout::{Dimension, LayoutParams},
         style::{ButtonStyle, ContainerStyle},
@@ -33,6 +33,7 @@ pub struct Ui {
 
     now_playing_title: LabelHandle,
     now_playing_artist: LabelHandle,
+    cover: ImageHandle,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -66,8 +67,6 @@ impl Ui {
             width: 480,
             height: 320,
         };
-
-        let cover = Image::load("cover.jpg", Scale::FixedWidth(150)).unwrap_or(Image::default());
 
         let button_style = ButtonStyle::default().with_radius(8);
 
@@ -160,6 +159,9 @@ impl Ui {
             .with_color(Color::rgb(130, 135, 150));
         let now_playing_artist = track_artist.handle();
 
+        let cover = ImageWidget::new(Image::default());
+        let cover_handle = cover.handle();
+
         let now_playing = Container::new(Rect::default())
             .with_padding(12)
             .with_spacing(14)
@@ -170,7 +172,7 @@ impl Ui {
                     .with_radius(8),
             )
             .with_child(
-                ImageWidget::new(cover),
+                cover,
                 LayoutParams {
                     width: Dimension::Fixed(150),
                     height: Dimension::Fixed(150),
@@ -285,6 +287,7 @@ impl Ui {
             need_to_clear: true,
             now_playing_title,
             now_playing_artist,
+            cover: cover_handle,
         }
     }
 
@@ -328,7 +331,7 @@ impl Ui {
         ui_event
     }
 
-    pub fn set_current_track(&mut self, track: Option<&Track>) {
+    pub fn set_current_track(&mut self, track: Option<&Track>, player: &MpdPlayer) {
         let mut title = self.now_playing_title.borrow_mut();
         let mut artist = self.now_playing_artist.borrow_mut();
 
@@ -336,11 +339,35 @@ impl Ui {
             Some(track) => {
                 *title = track.title.clone();
                 *artist = track.artist.clone();
+
+                let cover_path = player
+                    .library
+                    .path(track)
+                    .parent()
+                    .unwrap()
+                    .join("cover.jpg");
+
+                match Image::load(
+                    cover_path,
+                    Scale::Exact {
+                        width: 150,
+                        height: 150,
+                    },
+                ) {
+                    Ok(cover) => {
+                        self.cover.set(cover);
+                    }
+
+                    Err(error) => {
+                        println!("Can't load cover for {}: {}", track.path.display(), error);
+                    }
+                }
             }
 
             None => {
                 *title = "Нет трека".to_string();
                 *artist = String::new();
+                self.cover.set(Image::default());
             }
         }
 

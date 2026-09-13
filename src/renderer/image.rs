@@ -18,21 +18,12 @@ pub struct Image {
 }
 
 impl Image {
-    pub fn load<P: AsRef<Path>>(path: P, scale: Scale) -> io::Result<Self> {
-        let data = fs::read(path)?;
-
-        let image = image::load_from_memory(&data)
-            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
-
-        let image = scale_image(image, scale);
-
+    fn from_rgba8(image: image::RgbaImage) -> Self {
         let (width, height) = image.dimensions();
-
-        let rgba = image.to_rgba8();
 
         let mut pixels = Vec::with_capacity((width * height) as usize);
 
-        for pixel in rgba.pixels() {
+        for pixel in image.pixels() {
             let [r, g, b, _a] = pixel.0;
 
             let rgb565 = ((r as u16 >> 3) << 11) | ((g as u16 >> 2) << 5) | (b as u16 >> 3);
@@ -40,11 +31,23 @@ impl Image {
             pixels.push(rgb565);
         }
 
-        Ok(Self {
+        Self {
             width: width as usize,
             height: height as usize,
             pixels,
-        })
+        }
+    }
+
+    pub fn load<P: AsRef<Path>>(path: P, scale: Scale) -> io::Result<Self> {
+        let data = fs::read(path)?;
+
+        let image = image::load_from_memory(&data)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+
+        let image = scale_image(image, scale);
+        let rgba = image.to_rgba8();
+
+        Ok(Self::from_rgba8(rgba))
     }
 }
 

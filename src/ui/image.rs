@@ -6,9 +6,31 @@ use crate::{
     ui::{UiEvent, layout::LayoutParams, widget::Widget},
 };
 
+use std::cell::{Ref, RefCell, RefMut};
+use std::rc::Rc;
+
+#[derive(Clone)]
+pub struct ImageHandle {
+    image: Rc<RefCell<Image>>,
+}
+
+impl ImageHandle {
+    pub fn get(&self) -> Ref<'_, Image> {
+        self.image.borrow()
+    }
+
+    pub fn get_mut(&self) -> RefMut<'_, Image> {
+        self.image.borrow_mut()
+    }
+
+    pub fn set(&self, image: Image) {
+        *self.image.borrow_mut() = image;
+    }
+}
+
 pub struct ImageWidget {
+    image: Rc<RefCell<Image>>,
     rect: Rect,
-    image: Image,
 }
 
 impl ImageWidget {
@@ -20,13 +42,19 @@ impl ImageWidget {
 
         Self {
             rect: Rect::new(0, 0, size.width, size.height),
-            image,
+            image: Rc::new(RefCell::new(image)),
         }
     }
 
     pub fn with_bounds(mut self, rect: Rect) -> Self {
         self.rect = rect;
         self
+    }
+
+    pub fn handle(&self) -> ImageHandle {
+        ImageHandle {
+            image: Rc::clone(&self.image),
+        }
     }
 }
 
@@ -41,8 +69,8 @@ impl Widget for ImageWidget {
 
     fn preferred_size(&self) -> Size {
         Size {
-            width: self.image.width,
-            height: self.image.height,
+            width: self.image.borrow().width,
+            height: self.image.borrow().height,
         }
     }
 
@@ -55,7 +83,7 @@ impl Widget for ImageWidget {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        renderer.draw_image(self.rect.x, self.rect.y, &self.image);
+        renderer.draw_image(self.rect.x, self.rect.y, &self.image.borrow());
     }
 
     fn update(&mut self, _dt: Duration) {}

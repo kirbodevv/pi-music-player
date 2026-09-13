@@ -74,7 +74,7 @@ impl<P: Platform> App<P> {
 
             match self.player.current_track() {
                 Ok(track) => {
-                    self.ui.set_current_track(track.as_ref());
+                    self.ui.set_current_track(track.as_ref(), &self.player);
                 }
 
                 Err(e) => {

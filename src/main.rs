@@ -1,9 +1,9 @@
-mod app;
-mod event;
-mod music;
-mod platform;
-mod renderer;
-mod ui;
+pub mod app;
+pub mod event;
+pub mod music;
+pub mod platform;
+pub mod renderer;
+pub mod ui;
 
 use app::App;
 #[cfg(feature = "desktop")]

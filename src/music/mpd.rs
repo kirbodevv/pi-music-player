@@ -3,18 +3,25 @@ use std::time::Duration;
 use mpd::error::Error;
 use mpd::{Client, Song, State};
 
+use crate::music::library::MusicLibrary;
 use crate::music::player::{AudioPlayer, PlayerState};
 use crate::music::track::Track;
 
 pub struct MpdPlayer {
     client: Client,
+    pub library: MusicLibrary,
 }
 
 impl MpdPlayer {
     pub fn connect(address: &str) -> Result<Self, Error> {
-        let client = Client::connect(address)?;
+        let mut client = Client::connect(address)?;
 
-        Ok(Self { client })
+        let music_directory = client.music_directory()?;
+
+        Ok(Self {
+            client,
+            library: MusicLibrary::new(music_directory),
+        })
     }
 }
 
