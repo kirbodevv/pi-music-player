@@ -141,7 +141,9 @@ impl Widget for Label {
 
             let y = start_y + index * line_height;
 
-            renderer.draw_text(x, y + line_size.height, line, self.font, self.color);
+            const TEXT_VERTICAL_OFFSET: i32 = 2;
+            let baseline = (y + line_size.height) as i32 + TEXT_VERTICAL_OFFSET;
+            renderer.draw_text(x, baseline as usize, line, self.font, self.color);
         }
     }
 }
