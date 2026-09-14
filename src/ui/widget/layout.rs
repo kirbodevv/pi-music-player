@@ -6,7 +6,7 @@ pub enum Dimension {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Direction {
+pub enum LayoutDirection {
     Vertical,
     Horizontal,
 }

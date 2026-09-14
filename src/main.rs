@@ -9,6 +9,7 @@ use app::App;
 
 fn main() {
     #[cfg(feature = "raspberry")]
+    #[allow(unused_variables)]
     let (platform, stream) = {
         use platform::raspberry::Raspberry;
         use std::os::unix::net::UnixStream;

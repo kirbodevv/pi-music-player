@@ -1,9 +1,3 @@
-pub mod button;
-pub mod container;
-pub mod image;
-pub mod label;
-pub mod layout;
-pub mod style;
 pub mod widget;
 
 use std::io::{Read, Write};
@@ -11,18 +5,12 @@ use std::io::{Read, Write};
 use crate::{
     event::InputEvent,
     music::{mpd::MpdPlayer, track::Track},
-    renderer::{FONT_16, FONT_20, FONT_24, FONT_32, Image, Rect, Renderer, Scale, color::Color},
-    ui::{
-        container::{Container, Direction},
-        image::{ImageHandle, ImageWidget},
-        label::{Label, LabelHandle, TextAlign},
-        layout::{Dimension, LayoutParams},
-        style::{ButtonStyle, ContainerStyle},
-        widget::Widget,
+    renderer::{FONT_16, FONT_24, Image, Rect, Renderer, Scale, color::Color},
+    ui::widget::{
+        Button, ButtonStyle, Container, ContainerDirection, ContainerStyle, Dimension, ImageHandle,
+        ImageWidget, Label, LabelHandle, LayoutParams, TextAlign, Widget,
     },
 };
-
-use button::Button;
 
 pub struct Ui {
     screen: Screen,
@@ -90,7 +78,7 @@ impl Ui {
             .with_text_align(TextAlign::Right);
 
         let header = Container::new(Rect::default())
-            .with_direction(Direction::Horizontal)
+            .with_direction(ContainerDirection::Horizontal)
             .with_spacing(8)
             .with_child(
                 title,
@@ -127,7 +115,7 @@ impl Ui {
             .on_click(Box::new(|| UiEvent::Player(PlayerAction::Next)));
 
         let controll_panel = Container::new(Rect::default())
-            .with_direction(Direction::Horizontal)
+            .with_direction(ContainerDirection::Horizontal)
             .with_spacing(8)
             .with_child(
                 previous,
@@ -167,7 +155,7 @@ impl Ui {
         let now_playing = Container::new(Rect::default())
             .with_padding(12)
             .with_spacing(14)
-            .with_direction(Direction::Horizontal)
+            .with_direction(ContainerDirection::Horizontal)
             .with_style(
                 ContainerStyle::default()
                     .with_background(Color::rgb(30, 30, 70))
@@ -182,7 +170,7 @@ impl Ui {
             )
             .with_child(
                 Container::new(Rect::default())
-                    .with_direction(Direction::Vertical)
+                    .with_direction(ContainerDirection::Vertical)
                     .with_spacing(4)
                     .with_child(
                         Label::new("СЕЙЧАС ИГРАЕТ")
@@ -234,7 +222,7 @@ impl Ui {
             .on_click(Box::new(|| UiEvent::Open(Screen::Settings)));
 
         let row = Container::new(Rect::default())
-            .with_direction(Direction::Horizontal)
+            .with_direction(ContainerDirection::Horizontal)
             .with_spacing(10)
             .with_child(
                 music,

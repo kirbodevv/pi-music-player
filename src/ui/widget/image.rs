@@ -3,7 +3,10 @@ use std::time::Duration;
 use crate::{
     event::InputEvent,
     renderer::{Image, Rect, Renderer, Size},
-    ui::{UiEvent, layout::LayoutParams, widget::Widget},
+    ui::{
+        UiEvent,
+        widget::{LayoutParams, Widget},
+    },
 };
 
 use std::cell::{Ref, RefCell, RefMut};

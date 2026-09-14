@@ -3,7 +3,10 @@ use std::{cell::RefCell, rc::Rc};
 use crate::{
     event::InputEvent,
     renderer::{FONT_32, Rect, Renderer, Size, color::Color, font::Font},
-    ui::{UiEvent, layout::LayoutParams, widget::Widget},
+    ui::{
+        UiEvent,
+        widget::{LayoutParams, Widget},
+    },
 };
 
 const DEFAULT_FONT: &Font = &FONT_32;

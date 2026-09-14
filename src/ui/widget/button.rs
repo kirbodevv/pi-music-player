@@ -1,12 +1,9 @@
 use crate::{
     event::InputEvent,
-    renderer::{Rect, Renderer, Size, color::Color},
+    renderer::{Rect, Renderer, Size},
     ui::{
         UiEvent,
-        label::{Label, TextAlign, VerticalAlign},
-        layout::LayoutParams,
-        style::ButtonStyle,
-        widget::Widget,
+        widget::{ButtonStyle, Label, LayoutParams, TextAlign, VerticalAlign, Widget},
     },
 };
 
@@ -235,8 +232,6 @@ impl Widget for Button {
             }
 
             InputEvent::PointMove { .. } => {}
-
-            _ => {}
         }
 
         UiEvent::None

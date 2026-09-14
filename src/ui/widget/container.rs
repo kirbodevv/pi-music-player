@@ -5,14 +5,12 @@ use crate::{
     renderer::{Rect, Renderer, Size},
     ui::{
         UiEvent,
-        layout::{Dimension, LayoutParams},
-        style::ContainerStyle,
-        widget::Widget,
+        widget::{ContainerStyle, Dimension, LayoutParams, Widget},
     },
 };
 
 #[derive(Debug, Clone, Copy)]
-pub enum Direction {
+pub enum ContainerDirection {
     Vertical,
     Horizontal,
 }
@@ -25,7 +23,7 @@ pub struct Child {
 pub struct Container {
     rect: Rect,
     children: Vec<Child>,
-    direction: Direction,
+    direction: ContainerDirection,
     spacing: usize,
     padding: usize,
     style: ContainerStyle,
@@ -36,7 +34,7 @@ impl Container {
         Self {
             rect,
             children: Vec::new(),
-            direction: Direction::Vertical,
+            direction: ContainerDirection::Vertical,
             spacing: 0,
             padding: 0,
             style: ContainerStyle::default(),
@@ -52,7 +50,7 @@ impl Container {
         self
     }
 
-    pub fn with_direction(mut self, direction: Direction) -> Self {
+    pub fn with_direction(mut self, direction: ContainerDirection) -> Self {
         self.direction = direction;
         self.layout();
         self
@@ -77,8 +75,8 @@ impl Container {
 
     fn layout(&mut self) {
         match self.direction {
-            Direction::Vertical => self.layout_vertical(),
-            Direction::Horizontal => self.layout_horizontal(),
+            ContainerDirection::Vertical => self.layout_vertical(),
+            ContainerDirection::Horizontal => self.layout_horizontal(),
         }
     }
 
