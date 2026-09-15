@@ -1,11 +1,11 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Duration;
 
 use crate::{
     context::Context,
     event::InputEvent,
     music::track::Track,
-    renderer::{FONT_16, FONT_24, Image, Rect, Renderer, Scale, color::Color},
+    renderer::{FONT_16, FONT_24, Image, Rect, Renderer, color::Color},
     ui::{
         screen::{Screen, ScreenId, Transition},
         widget::{
@@ -257,38 +257,19 @@ impl Launcher {
         }
     }
 
-    pub fn set_current_track(&mut self, track: Option<&Track>, library: Option<&Path>) {
+    fn set_track_labels(&mut self, track: Option<&Track>) {
         let mut title = self.now_playing_title.borrow_mut();
         let mut artist = self.now_playing_artist.borrow_mut();
 
-        match (track, library) {
-            (Some(track), Some(library)) => {
+        match track {
+            Some(track) => {
                 *title = track.title.clone();
                 *artist = track.artist.clone();
-
-                let cover_path = library.parent().unwrap().join("cover.jpg");
-
-                match Image::load(
-                    cover_path,
-                    Scale::Exact {
-                        width: 150,
-                        height: 150,
-                    },
-                ) {
-                    Ok(cover) => {
-                        self.cover.set(cover);
-                    }
-
-                    Err(error) => {
-                        println!("Can't load cover for {}: {}", track.path.display(), error);
-                    }
-                }
             }
 
-            _ => {
+            None => {
                 *title = "Нет трека".to_string();
                 *artist = String::new();
-                self.cover.set(Image::default());
             }
         }
     }
@@ -298,12 +279,19 @@ impl Screen for Launcher {
     fn update(&mut self, ctx: &mut Context, dt: Duration) {
         self.root.update(dt);
 
-        let path = ctx.music.current_song_path();
+        let path = ctx.music.current_song_path().cloned();
 
-        if path != self.displayed_track_path.as_ref() {
-            self.displayed_track_path = path.cloned();
-            let track = ctx.music.current_track();
-            self.set_current_track(track, path.map(PathBuf::as_path));
+        if path != self.displayed_track_path {
+            self.displayed_track_path = path.clone();
+
+            let track = ctx.music.current_track().cloned();
+            self.set_track_labels(track.as_ref());
+
+            let cover = match &path {
+                Some(path) => ctx.artwork.cover_for(path),
+                None => Image::default(),
+            };
+            self.cover.set(cover);
         }
     }
 

@@ -1,4 +1,5 @@
 pub mod app;
+pub mod artwork;
 pub mod context;
 pub mod event;
 pub mod music;
