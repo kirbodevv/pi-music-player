@@ -294,7 +294,8 @@ impl<A> Screen for Launcher<A>
 where
     A: AudioPlayer,
 {
-    fn update(&mut self) {
+    fn update(&mut self, dt: Duration) {
+        self.root.update(dt);
         if self.last_player_update.elapsed() >= Duration::from_millis(250) {
             self.last_player_update = Instant::now();
             let (track, path) = {

@@ -1,7 +1,7 @@
 pub mod screen;
 pub mod widget;
 
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
 
 use crate::{
     event::InputEvent,
@@ -45,9 +45,9 @@ impl Ui {
         self.need_to_clear = true;
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, dt: Duration) {
         if let Some(screen) = self.screens.get_mut(&self.screen) {
-            screen.update();
+            screen.update(dt);
         }
     }
 

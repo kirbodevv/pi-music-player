@@ -16,6 +16,7 @@ where
     platform: P,
     renderer: Renderer,
     ui: Ui,
+    last_update: Instant,
     next_frame: Instant,
     running: bool,
     player: Rc<RefCell<MpdPlayer<S>>>,
@@ -33,6 +34,7 @@ impl<P: Platform, S: Read + Write + 'static> App<P, S> {
             platform,
             renderer: Renderer::new(),
             ui: Ui::new(player.clone()),
+            last_update: Instant::now(),
             next_frame: Instant::now(),
             running: true,
             player,
@@ -50,7 +52,11 @@ impl<P: Platform, S: Read + Write + 'static> App<P, S> {
     }
 
     fn update(&mut self) -> io::Result<()> {
-        self.ui.update();
+        let now = Instant::now();
+        let dt = now.duration_since(self.last_update);
+        self.last_update = now;
+
+        self.ui.update(dt);
         for event in self.platform.poll_events() {
             let ui_event = self.ui.handle_input(event);
 
