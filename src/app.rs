@@ -5,8 +5,6 @@ use std::rc::Rc;
 use std::time::{Duration, Instant};
 use std::{io, thread};
 
-use crate::music::player::AudioPlayer;
-use crate::ui::screen::ScreenEvent;
 use crate::{music::mpd::MpdPlayer, platform::Platform, renderer::Renderer, ui::Ui};
 
 pub struct App<P, S>
@@ -58,24 +56,7 @@ impl<P: Platform, S: Read + Write + 'static> App<P, S> {
 
         self.ui.update(dt);
         for event in self.platform.poll_events() {
-            let ui_event = self.ui.handle_input(event);
-
-            let result = match ui_event {
-                ScreenEvent::Player(action) => {
-                    let mut player = self.player.borrow_mut();
-                    match action {
-                        crate::ui::PlayerAction::Previous => player.previous(),
-                        crate::ui::PlayerAction::PlayPause => player.pause(),
-                        crate::ui::PlayerAction::Next => player.next(),
-                    }
-                }
-
-                _ => Ok(()),
-            };
-
-            if let Err(e) = result {
-                eprintln!("MPD error: {e}");
-            }
+            self.ui.handle_input(event);
         }
 
         Ok(())

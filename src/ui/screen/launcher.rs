@@ -10,8 +10,7 @@ use crate::{
     music::{player::AudioPlayer, track::Track},
     renderer::{FONT_16, FONT_24, Image, Rect, Renderer, Scale, color::Color},
     ui::{
-        PlayerAction,
-        screen::{Screen, ScreenEvent, ScreenId},
+        screen::{Screen, ScreenId, Transition},
         widget::{
             Button, ButtonStyle, Container, ContainerDirection, ContainerStyle, Dimension,
             ImageHandle, ImageWidget, Label, LabelHandle, LayoutParams, TextAlign, Widget,
@@ -77,20 +76,11 @@ where
          * NOW PLAYING
          */
 
-        let previous = Button::new()
-            .with_text("<<")
-            .with_style(button_style)
-            .on_click(Box::new(|| ScreenEvent::Player(PlayerAction::Previous)));
+        let previous = Button::new().with_text("<<").with_style(button_style);
 
-        let pause_play = Button::new()
-            .with_text(">")
-            .with_style(button_style)
-            .on_click(Box::new(|| ScreenEvent::Player(PlayerAction::PlayPause)));
+        let pause_play = Button::new().with_text(">").with_style(button_style);
 
-        let next = Button::new()
-            .with_text(">>")
-            .with_style(button_style)
-            .on_click(Box::new(|| ScreenEvent::Player(PlayerAction::Next)));
+        let next = Button::new().with_text(">>").with_style(button_style);
 
         let controll_panel = Container::new(Rect::default())
             .with_direction(ContainerDirection::Horizontal)
@@ -192,12 +182,12 @@ where
         let music = Button::new()
             .with_text("MUSIC")
             .with_style(button_style)
-            .on_click(Box::new(|| ScreenEvent::Open(ScreenId::Music)));
+            .on_click(Box::new(|| Transition::Open(ScreenId::Music)));
 
         let settings = Button::new()
             .with_text("SETTINGS")
             .with_style(button_style)
-            .on_click(Box::new(|| ScreenEvent::Open(ScreenId::Settings)));
+            .on_click(Box::new(|| Transition::Open(ScreenId::Settings)));
 
         let row = Container::new(Rect::default())
             .with_direction(ContainerDirection::Horizontal)
@@ -316,7 +306,7 @@ where
         self.root.render(renderer);
     }
 
-    fn handle_input(&mut self, event: &InputEvent) -> ScreenEvent {
+    fn handle_input(&mut self, event: &InputEvent) -> Transition {
         self.root.handle_input(event)
     }
 }

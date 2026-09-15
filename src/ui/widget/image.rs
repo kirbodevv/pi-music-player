@@ -4,7 +4,7 @@ use crate::{
     event::InputEvent,
     renderer::{Image, Rect, Renderer, Size},
     ui::{
-        screen::ScreenEvent,
+        screen::Transition,
         widget::{LayoutParams, Widget},
     },
 };
@@ -81,8 +81,8 @@ impl Widget for ImageWidget {
         LayoutParams::default()
     }
 
-    fn handle_input(&mut self, _event: &InputEvent) -> ScreenEvent {
-        ScreenEvent::None
+    fn handle_input(&mut self, _event: &InputEvent) -> Transition {
+        Transition::None
     }
 
     fn render(&self, renderer: &mut Renderer) {

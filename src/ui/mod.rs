@@ -7,7 +7,7 @@ use crate::{
     event::InputEvent,
     music::player::AudioPlayer,
     renderer::{Renderer, color::Color},
-    ui::screen::{Screen, ScreenEvent, ScreenId, launcher::Launcher},
+    ui::screen::{Screen, ScreenId, Transition, launcher::Launcher},
 };
 
 pub struct Ui {
@@ -62,26 +62,23 @@ impl Ui {
         }
     }
 
-    pub fn handle_input(&mut self, event: InputEvent) -> ScreenEvent {
-        let ui_event = if let Some(screen) = self.screens.get_mut(&self.screen) {
-            screen.handle_input(&event)
-        } else {
-            ScreenEvent::None
+    pub fn handle_input(&mut self, event: InputEvent) {
+        let Some(screen) = self.screens.get_mut(&self.screen) else {
+            return;
         };
 
-        match &ui_event {
-            ScreenEvent::None | ScreenEvent::Player(_) => {}
+        let transition = screen.handle_input(&event);
 
-            ScreenEvent::Open(screen) => {
+        match transition {
+            Transition::Open(screen) => {
                 self.change_screen(screen.clone());
             }
 
-            ScreenEvent::Back => {
+            Transition::Back => {
                 self.change_screen(ScreenId::Launcher);
             }
-        }
-
-        ui_event
+            Transition::None => {}
+        };
     }
 
     pub fn get_screen(&self, screen: ScreenId) -> &Box<dyn Screen> {

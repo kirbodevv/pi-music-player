@@ -2,7 +2,7 @@ use crate::{
     event::InputEvent,
     renderer::{Rect, Renderer, Size},
     ui::{
-        screen::ScreenEvent,
+        screen::Transition,
         widget::{ButtonStyle, Label, LayoutParams, TextAlign, VerticalAlign, Widget},
     },
 };
@@ -18,7 +18,7 @@ pub struct Button {
     state: ButtonState,
 
     label: Option<Label>,
-    callback: Option<Box<dyn Fn() -> ScreenEvent>>,
+    callback: Option<Box<dyn Fn() -> Transition>>,
 
     style: ButtonStyle,
 }
@@ -56,7 +56,7 @@ impl Button {
             && y < self.rect.y + self.rect.height
     }
 
-    pub fn on_click(mut self, callback: Box<dyn Fn() -> ScreenEvent>) -> Self {
+    pub fn on_click(mut self, callback: Box<dyn Fn() -> Transition>) -> Self {
         self.callback = Some(callback);
         self
     }
@@ -66,11 +66,11 @@ impl Button {
         self
     }
 
-    fn invoke_callback(&mut self) -> ScreenEvent {
+    fn invoke_callback(&mut self) -> Transition {
         if let Some(callback) = &self.callback {
             callback()
         } else {
-            ScreenEvent::None
+            Transition::None
         }
     }
 
@@ -210,12 +210,12 @@ impl Widget for Button {
         }
     }
 
-    fn handle_input(&mut self, event: &InputEvent) -> ScreenEvent {
+    fn handle_input(&mut self, event: &InputEvent) -> Transition {
         match *event {
             InputEvent::PointDown { x, y } => {
                 if self.contains(x as usize, y as usize) {
                     self.state = ButtonState::Pressed;
-                    return ScreenEvent::None;
+                    return Transition::None;
                 }
             }
 
@@ -227,14 +227,14 @@ impl Widget for Button {
                         return self.invoke_callback();
                     }
 
-                    return ScreenEvent::None;
+                    return Transition::None;
                 }
             }
 
             InputEvent::PointMove { .. } => {}
         }
 
-        ScreenEvent::None
+        Transition::None
     }
 
     fn render(&self, renderer: &mut Renderer) {

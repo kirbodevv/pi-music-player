@@ -4,7 +4,7 @@ use crate::{
     event::InputEvent,
     renderer::{Rect, Renderer, Size},
     ui::{
-        screen::ScreenEvent,
+        screen::Transition,
         widget::{ContainerStyle, Dimension, LayoutParams, Widget},
     },
 };
@@ -235,16 +235,16 @@ impl Widget for Container {
         self.layout();
     }
 
-    fn handle_input(&mut self, event: &InputEvent) -> ScreenEvent {
+    fn handle_input(&mut self, event: &InputEvent) -> Transition {
         for child in self.children.iter_mut().rev() {
             let event = child.widget.handle_input(event);
 
-            if event != ScreenEvent::None {
+            if event != Transition::None {
                 return event;
             }
         }
 
-        ScreenEvent::None
+        Transition::None
     }
 
     fn render(&self, renderer: &mut Renderer) {
