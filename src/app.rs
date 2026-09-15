@@ -1,35 +1,41 @@
+use std::cell::RefCell;
 use std::io::{Error, Read, Write};
+
+use std::rc::Rc;
 use std::time::{Duration, Instant};
 use std::{io, thread};
 
-use crate::music::player::{AudioPlayer, PlayerState};
+use crate::music::player::AudioPlayer;
+use crate::ui::screen::ScreenEvent;
 use crate::{music::mpd::MpdPlayer, platform::Platform, renderer::Renderer, ui::Ui};
 
 pub struct App<P, S>
 where
-    S: Read + Write,
+    S: Read + Write + 'static,
 {
     platform: P,
     renderer: Renderer,
     ui: Ui,
     next_frame: Instant,
     running: bool,
-    player: MpdPlayer<S>,
-    last_player_update: Instant,
+    player: Rc<RefCell<MpdPlayer<S>>>,
 }
 
 const FRAME_TIME: Duration = Duration::from_micros(16_667);
 
-impl<P: Platform, S: Read + Write> App<P, S> {
+impl<P: Platform, S: Read + Write + 'static> App<P, S> {
     pub fn new(platform: P, stream: S) -> Result<Self, Error> {
+        let player = Rc::new(RefCell::new(
+            MpdPlayer::connect(stream).map_err(|e| Error::new(io::ErrorKind::Other, e))?,
+        ));
+
         Ok(Self {
             platform,
             renderer: Renderer::new(),
-            ui: Ui::new(),
+            ui: Ui::new(player.clone()),
             next_frame: Instant::now(),
             running: true,
-            player: MpdPlayer::connect(stream).map_err(|e| Error::new(io::ErrorKind::Other, e))?,
-            last_player_update: Instant::now(),
+            player,
         })
     }
 
@@ -44,44 +50,25 @@ impl<P: Platform, S: Read + Write> App<P, S> {
     }
 
     fn update(&mut self) -> io::Result<()> {
+        self.ui.update();
         for event in self.platform.poll_events() {
             let ui_event = self.ui.handle_input(event);
 
             let result = match ui_event {
-                crate::ui::UiEvent::Player(action) => match action {
-                    crate::ui::PlayerAction::Previous => self.player.previous(),
-
-                    crate::ui::PlayerAction::PlayPause => {
-                        let state = self
-                            .player
-                            .state()
-                            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-
-                        self.player.pause(state != PlayerState::Paused)
+                ScreenEvent::Player(action) => {
+                    let mut player = self.player.borrow_mut();
+                    match action {
+                        crate::ui::PlayerAction::Previous => player.previous(),
+                        crate::ui::PlayerAction::PlayPause => player.pause(),
+                        crate::ui::PlayerAction::Next => player.next(),
                     }
-
-                    crate::ui::PlayerAction::Next => self.player.next(),
-                },
+                }
 
                 _ => Ok(()),
             };
 
             if let Err(e) = result {
                 eprintln!("MPD error: {e}");
-            }
-        }
-
-        if self.last_player_update.elapsed() >= Duration::from_millis(250) {
-            self.last_player_update = Instant::now();
-
-            match self.player.current_track() {
-                Ok(track) => {
-                    self.ui.set_current_track(track.as_ref(), &self.player);
-                }
-
-                Err(e) => {
-                    eprintln!("MPD status error: {e}");
-                }
             }
         }
 

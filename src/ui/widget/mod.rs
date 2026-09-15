@@ -17,7 +17,7 @@ use std::time::Duration;
 use crate::{
     event::InputEvent,
     renderer::{Rect, Renderer, Size},
-    ui::UiEvent,
+    ui::screen::ScreenEvent,
 };
 
 pub trait Widget {
@@ -29,7 +29,7 @@ pub trait Widget {
 
     fn layout_params(&self) -> LayoutParams;
 
-    fn handle_input(&mut self, event: &InputEvent) -> UiEvent;
+    fn handle_input(&mut self, event: &InputEvent) -> ScreenEvent;
 
     fn render(&self, renderer: &mut Renderer);
 

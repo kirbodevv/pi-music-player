@@ -1,4 +1,5 @@
 use std::io::{Read, Write};
+use std::path::PathBuf;
 use std::time::Duration;
 
 use mpd::error::Error;
@@ -41,8 +42,9 @@ where
         self.client.play()
     }
 
-    fn pause(&mut self, state: bool) -> Result<(), mpd::error::Error> {
-        self.client.pause(state)
+    fn pause(&mut self) -> Result<(), mpd::error::Error> {
+        let state = self.state()?;
+        self.client.pause(state != PlayerState::Paused)
     }
 
     fn stop(&mut self) -> Result<(), mpd::error::Error> {
@@ -71,6 +73,14 @@ where
         let song = self.client.currentsong()?;
 
         Ok(song.map(track_from_mpd))
+    }
+
+    fn current_song_path(&mut self) -> Result<PathBuf, mpd::error::Error> {
+        let song = self.client.currentsong()?;
+        Ok(song
+            .map(track_from_mpd)
+            .map(|s| self.library.path(&s))
+            .unwrap_or_default())
     }
 
     fn position(&mut self) -> Result<Duration, mpd::error::Error> {

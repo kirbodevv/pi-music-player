@@ -4,7 +4,7 @@ use crate::{
     event::InputEvent,
     renderer::{FONT_32, Rect, Renderer, Size, color::Color, font::Font},
     ui::{
-        UiEvent,
+        screen::ScreenEvent,
         widget::{LayoutParams, Widget},
     },
 };
@@ -104,8 +104,8 @@ impl Widget for Label {
         self.rect = rect;
     }
 
-    fn handle_input(&mut self, _event: &InputEvent) -> UiEvent {
-        UiEvent::None
+    fn handle_input(&mut self, _event: &InputEvent) -> ScreenEvent {
+        ScreenEvent::None
     }
 
     fn render(&self, renderer: &mut Renderer) {
