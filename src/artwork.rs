@@ -43,14 +43,6 @@ impl ArtworkService {
         }
 
         let (_, image) = self.cached.as_ref().unwrap();
-        clone_image(image)
-    }
-}
-
-fn clone_image(image: &Image) -> Image {
-    Image {
-        width: image.width,
-        height: image.height,
-        pixels: image.pixels.clone(),
+        image.clone()
     }
 }
