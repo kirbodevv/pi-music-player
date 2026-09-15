@@ -1,3 +1,4 @@
+pub mod registry;
 pub mod screen;
 pub mod widget;
 
@@ -7,7 +8,7 @@ use crate::{
     context::Context,
     event::InputEvent,
     renderer::{Renderer, color::Color},
-    ui::screen::{Screen, ScreenId, Transition, launcher::Launcher},
+    ui::screen::{Screen, ScreenId, Transition},
 };
 
 pub struct Ui {
@@ -18,11 +19,8 @@ pub struct Ui {
 
 impl Ui {
     pub fn new() -> Self {
-        let mut screens = HashMap::<ScreenId, Box<dyn Screen>>::new();
-        screens.insert(ScreenId::Launcher, Box::new(Launcher::new()));
-
         Self {
-            screens,
+            screens: registry::build_screens(),
             screen: ScreenId::Launcher,
             need_to_clear: true,
         }
