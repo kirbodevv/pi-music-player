@@ -5,7 +5,12 @@ use std::rc::Rc;
 use std::time::{Duration, Instant};
 use std::{io, thread};
 
-use crate::{music::mpd::MpdPlayer, platform::Platform, renderer::Renderer, ui::Ui};
+use crate::{
+    music::{mpd::MpdPlayer, service::MusicService},
+    platform::Platform,
+    renderer::Renderer,
+    ui::Ui,
+};
 
 pub struct App<P, S>
 where
@@ -17,7 +22,7 @@ where
     last_update: Instant,
     next_frame: Instant,
     running: bool,
-    player: Rc<RefCell<MpdPlayer<S>>>,
+    music: MusicService<MpdPlayer<S>>,
 }
 
 const FRAME_TIME: Duration = Duration::from_micros(16_667);
@@ -28,14 +33,16 @@ impl<P: Platform, S: Read + Write + 'static> App<P, S> {
             MpdPlayer::connect(stream).map_err(|e| Error::new(io::ErrorKind::Other, e))?,
         ));
 
+        let music = MusicService::new(player.clone());
+
         Ok(Self {
             platform,
             renderer: Renderer::new(),
-            ui: Ui::new(player.clone()),
+            ui: Ui::new(player),
             last_update: Instant::now(),
             next_frame: Instant::now(),
             running: true,
-            player,
+            music,
         })
     }
 
@@ -54,6 +61,7 @@ impl<P: Platform, S: Read + Write + 'static> App<P, S> {
         let dt = now.duration_since(self.last_update);
         self.last_update = now;
 
+        self.music.poll();
         self.ui.update(dt);
         for event in self.platform.poll_events() {
             self.ui.handle_input(event);
