@@ -1,11 +1,11 @@
 pub mod screen;
 pub mod widget;
 
-use std::{cell::RefCell, collections::HashMap, rc::Rc, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
 use crate::{
+    context::Context,
     event::InputEvent,
-    music::player::AudioPlayer,
     renderer::{Renderer, color::Color},
     ui::screen::{Screen, ScreenId, Transition, launcher::Launcher},
 };
@@ -16,22 +16,10 @@ pub struct Ui {
     need_to_clear: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PlayerAction {
-    Previous,
-    PlayPause,
-    Next,
-}
-
 impl Ui {
-    pub fn new<A>(player: Rc<RefCell<A>>) -> Self
-    where
-        A: AudioPlayer + 'static,
-    {
-        let launcher = Launcher::new(player);
-
+    pub fn new() -> Self {
         let mut screens = HashMap::<ScreenId, Box<dyn Screen>>::new();
-        screens.insert(ScreenId::Launcher, Box::new(launcher));
+        screens.insert(ScreenId::Launcher, Box::new(Launcher::new()));
 
         Self {
             screens,
@@ -45,9 +33,9 @@ impl Ui {
         self.need_to_clear = true;
     }
 
-    pub fn update(&mut self, dt: Duration) {
+    pub fn update(&mut self, ctx: &mut Context, dt: Duration) {
         if let Some(screen) = self.screens.get_mut(&self.screen) {
-            screen.update(dt);
+            screen.update(ctx, dt);
         }
     }
 
@@ -62,12 +50,12 @@ impl Ui {
         }
     }
 
-    pub fn handle_input(&mut self, event: InputEvent) {
+    pub fn handle_input(&mut self, event: InputEvent, ctx: &mut Context) {
         let Some(screen) = self.screens.get_mut(&self.screen) else {
             return;
         };
 
-        let transition = screen.handle_input(&event);
+        let transition = screen.handle_input(&event, ctx);
 
         match transition {
             Transition::Open(screen) => {

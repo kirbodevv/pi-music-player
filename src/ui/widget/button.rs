@@ -1,4 +1,5 @@
 use crate::{
+    context::Context,
     event::InputEvent,
     renderer::{Rect, Renderer, Size},
     ui::{
@@ -18,7 +19,7 @@ pub struct Button {
     state: ButtonState,
 
     label: Option<Label>,
-    callback: Option<Box<dyn Fn() -> Transition>>,
+    callback: Option<Box<dyn Fn(&mut Context) -> Transition>>,
 
     style: ButtonStyle,
 }
@@ -56,7 +57,7 @@ impl Button {
             && y < self.rect.y + self.rect.height
     }
 
-    pub fn on_click(mut self, callback: Box<dyn Fn() -> Transition>) -> Self {
+    pub fn on_click(mut self, callback: Box<dyn Fn(&mut Context) -> Transition>) -> Self {
         self.callback = Some(callback);
         self
     }
@@ -66,9 +67,9 @@ impl Button {
         self
     }
 
-    fn invoke_callback(&mut self) -> Transition {
+    fn invoke_callback(&mut self, ctx: &mut Context) -> Transition {
         if let Some(callback) = &self.callback {
-            callback()
+            callback(ctx)
         } else {
             Transition::None
         }
@@ -210,7 +211,7 @@ impl Widget for Button {
         }
     }
 
-    fn handle_input(&mut self, event: &InputEvent) -> Transition {
+    fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition {
         match *event {
             InputEvent::PointDown { x, y } => {
                 if self.contains(x as usize, y as usize) {
@@ -224,7 +225,7 @@ impl Widget for Button {
                     self.state = ButtonState::Normal;
 
                     if self.contains(x as usize, y as usize) {
-                        return self.invoke_callback();
+                        return self.invoke_callback(ctx);
                     }
 
                     return Transition::None;

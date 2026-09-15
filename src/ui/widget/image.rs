@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use crate::{
+    context::Context,
     event::InputEvent,
     renderer::{Image, Rect, Renderer, Size},
     ui::{
@@ -81,7 +82,7 @@ impl Widget for ImageWidget {
         LayoutParams::default()
     }
 
-    fn handle_input(&mut self, _event: &InputEvent) -> Transition {
+    fn handle_input(&mut self, _event: &InputEvent, _ctx: &mut Context) -> Transition {
         Transition::None
     }
 

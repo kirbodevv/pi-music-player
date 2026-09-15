@@ -15,6 +15,7 @@ pub use style::*;
 use std::time::Duration;
 
 use crate::{
+    context::Context,
     event::InputEvent,
     renderer::{Rect, Renderer, Size},
     ui::screen::Transition,
@@ -29,7 +30,7 @@ pub trait Widget {
 
     fn layout_params(&self) -> LayoutParams;
 
-    fn handle_input(&mut self, event: &InputEvent) -> Transition;
+    fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition;
 
     fn render(&self, renderer: &mut Renderer);
 

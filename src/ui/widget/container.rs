@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use crate::{
+    context::Context,
     event::InputEvent,
     renderer::{Rect, Renderer, Size},
     ui::{
@@ -235,9 +236,9 @@ impl Widget for Container {
         self.layout();
     }
 
-    fn handle_input(&mut self, event: &InputEvent) -> Transition {
+    fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition {
         for child in self.children.iter_mut().rev() {
-            let event = child.widget.handle_input(event);
+            let event = child.widget.handle_input(event, ctx);
 
             if event != Transition::None {
                 return event;

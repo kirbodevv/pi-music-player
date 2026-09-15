@@ -1,6 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
+    context::Context,
     event::InputEvent,
     renderer::{FONT_32, Rect, Renderer, Size, color::Color, font::Font},
     ui::{
@@ -104,7 +105,7 @@ impl Widget for Label {
         self.rect = rect;
     }
 
-    fn handle_input(&mut self, _event: &InputEvent) -> Transition {
+    fn handle_input(&mut self, _event: &InputEvent, _ctx: &mut Context) -> Transition {
         Transition::None
     }
 

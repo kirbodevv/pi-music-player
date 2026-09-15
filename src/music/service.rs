@@ -6,17 +6,29 @@ use std::time::{Duration, Instant};
 use crate::music::player::AudioPlayer;
 use crate::music::track::Track;
 
+/// Minimum time between polling the underlying player for fresh state.
 const POLL_INTERVAL: Duration = Duration::from_millis(250);
 
-pub struct MusicService<A: AudioPlayer> {
-    player: Rc<RefCell<A>>,
+/// The single concrete error type produced by the current `AudioPlayer`
+/// implementation (MPD). Fixed here so that the player can be stored as a
+/// trait object, which keeps `Context` (and therefore `Screen`/`Widget`)
+/// free of any generic parameter tied to the connection type.
+pub type PlayerError = mpd::error::Error;
+
+pub type SharedPlayer = Rc<RefCell<dyn AudioPlayer<Error = PlayerError>>>;
+
+/// Wraps an [`AudioPlayer`] and exposes the operations/state a UI screen
+/// actually needs, without the screen having to know about the concrete
+/// player implementation or about polling details.
+pub struct MusicService {
+    player: SharedPlayer,
     current_track: Option<Track>,
     current_song_path: Option<PathBuf>,
     last_poll: Instant,
 }
 
-impl<A: AudioPlayer> MusicService<A> {
-    pub fn new(player: Rc<RefCell<A>>) -> Self {
+impl MusicService {
+    pub fn new(player: SharedPlayer) -> Self {
         Self {
             player,
             current_track: None,
@@ -46,6 +58,8 @@ impl<A: AudioPlayer> MusicService<A> {
         self.current_song_path.as_ref()
     }
 
+    /// Refreshes cached player state, throttled to `POLL_INTERVAL` so that
+    /// callers can invoke this every frame without hammering the connection.
     pub fn poll(&mut self) {
         if self.last_poll.elapsed() < POLL_INTERVAL {
             return;

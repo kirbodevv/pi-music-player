@@ -1,13 +1,10 @@
-use std::{
-    cell::RefCell,
-    path::PathBuf,
-    rc::Rc,
-    time::{Duration, Instant},
-};
+use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use crate::{
+    context::Context,
     event::InputEvent,
-    music::{player::AudioPlayer, track::Track},
+    music::track::Track,
     renderer::{FONT_16, FONT_24, Image, Rect, Renderer, Scale, color::Color},
     ui::{
         screen::{Screen, ScreenId, Transition},
@@ -18,23 +15,19 @@ use crate::{
     },
 };
 
-pub struct Launcher<A>
-where
-    A: AudioPlayer,
-{
+pub struct Launcher {
     root: Container,
-    player: Rc<RefCell<A>>,
-    last_player_update: Instant,
     now_playing_title: LabelHandle,
     now_playing_artist: LabelHandle,
     cover: ImageHandle,
+    // Tracks what is currently displayed so `update()` (called every frame)
+    // doesn't reload the cover image from disk unless the track has
+    // actually changed since `MusicService` was last polled.
+    displayed_track_path: Option<PathBuf>,
 }
 
-impl<A> Launcher<A>
-where
-    A: AudioPlayer,
-{
-    pub fn new(player: Rc<RefCell<A>>) -> Self {
+impl Launcher {
+    pub fn new() -> Self {
         let button_style = ButtonStyle::default().with_radius(8);
 
         let mut root = Container::new(Rect::new(0, 0, 480, 320))
@@ -76,11 +69,29 @@ where
          * NOW PLAYING
          */
 
-        let previous = Button::new().with_text("<<").with_style(button_style);
+        let previous = Button::new()
+            .with_text("<<")
+            .with_style(button_style)
+            .on_click(Box::new(|ctx: &mut Context| {
+                ctx.music.previous();
+                Transition::None
+            }));
 
-        let pause_play = Button::new().with_text(">").with_style(button_style);
+        let pause_play = Button::new()
+            .with_text(">")
+            .with_style(button_style)
+            .on_click(Box::new(|ctx: &mut Context| {
+                ctx.music.play_pause();
+                Transition::None
+            }));
 
-        let next = Button::new().with_text(">>").with_style(button_style);
+        let next = Button::new()
+            .with_text(">>")
+            .with_style(button_style)
+            .on_click(Box::new(|ctx: &mut Context| {
+                ctx.music.next();
+                Transition::None
+            }));
 
         let controll_panel = Container::new(Rect::default())
             .with_direction(ContainerDirection::Horizontal)
@@ -182,12 +193,16 @@ where
         let music = Button::new()
             .with_text("MUSIC")
             .with_style(button_style)
-            .on_click(Box::new(|| Transition::Open(ScreenId::Music)));
+            .on_click(Box::new(|_ctx: &mut Context| {
+                Transition::Open(ScreenId::Music)
+            }));
 
         let settings = Button::new()
             .with_text("SETTINGS")
             .with_style(button_style)
-            .on_click(Box::new(|| Transition::Open(ScreenId::Settings)));
+            .on_click(Box::new(|_ctx: &mut Context| {
+                Transition::Open(ScreenId::Settings)
+            }));
 
         let row = Container::new(Rect::default())
             .with_direction(ContainerDirection::Horizontal)
@@ -237,13 +252,12 @@ where
             root,
             now_playing_title,
             now_playing_artist,
-            last_player_update: Instant::now(),
-            player,
             cover: cover_handle,
+            displayed_track_path: None,
         }
     }
 
-    pub fn set_current_track(&mut self, track: Option<Track>, library: Option<PathBuf>) {
+    pub fn set_current_track(&mut self, track: Option<&Track>, library: Option<&Path>) {
         let mut title = self.now_playing_title.borrow_mut();
         let mut artist = self.now_playing_artist.borrow_mut();
 
@@ -280,25 +294,16 @@ where
     }
 }
 
-impl<A> Screen for Launcher<A>
-where
-    A: AudioPlayer,
-{
-    fn update(&mut self, dt: Duration) {
+impl Screen for Launcher {
+    fn update(&mut self, ctx: &mut Context, dt: Duration) {
         self.root.update(dt);
-        if self.last_player_update.elapsed() >= Duration::from_millis(250) {
-            self.last_player_update = Instant::now();
-            let (track, path) = {
-                let mut player = self.player.borrow_mut();
-                if let Ok(Some(track)) = player.current_track() {
-                    let path = player.current_song_path().ok();
-                    (Some(track), path)
-                } else {
-                    (None, None)
-                }
-            };
 
-            self.set_current_track(track, path);
+        let path = ctx.music.current_song_path();
+
+        if path != self.displayed_track_path.as_ref() {
+            self.displayed_track_path = path.cloned();
+            let track = ctx.music.current_track();
+            self.set_current_track(track, path.map(PathBuf::as_path));
         }
     }
 
@@ -306,7 +311,7 @@ where
         self.root.render(renderer);
     }
 
-    fn handle_input(&mut self, event: &InputEvent) -> Transition {
-        self.root.handle_input(event)
+    fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition {
+        self.root.handle_input(event, ctx)
     }
 }

@@ -6,43 +6,42 @@ use std::time::{Duration, Instant};
 use std::{io, thread};
 
 use crate::{
-    music::{mpd::MpdPlayer, service::MusicService},
+    context::Context,
+    music::{mpd::MpdPlayer, player::AudioPlayer, service::MusicService},
     platform::Platform,
     renderer::Renderer,
     ui::Ui,
 };
 
-pub struct App<P, S>
-where
-    S: Read + Write + 'static,
-{
+pub struct App<P> {
     platform: P,
     renderer: Renderer,
     ui: Ui,
+    ctx: Context,
     last_update: Instant,
     next_frame: Instant,
     running: bool,
-    music: MusicService<MpdPlayer<S>>,
 }
 
 const FRAME_TIME: Duration = Duration::from_micros(16_667);
 
-impl<P: Platform, S: Read + Write + 'static> App<P, S> {
-    pub fn new(platform: P, stream: S) -> Result<Self, Error> {
-        let player = Rc::new(RefCell::new(
-            MpdPlayer::connect(stream).map_err(|e| Error::new(io::ErrorKind::Other, e))?,
-        ));
+impl<P: Platform> App<P> {
+    pub fn new<S: Read + Write + 'static>(platform: P, stream: S) -> Result<Self, Error> {
+        let player = MpdPlayer::connect(stream).map_err(|e| Error::new(io::ErrorKind::Other, e))?;
 
-        let music = MusicService::new(player.clone());
+        let player: Rc<RefCell<dyn AudioPlayer<Error = mpd::error::Error>>> =
+            Rc::new(RefCell::new(player));
+
+        let ctx = Context::new(MusicService::new(player));
 
         Ok(Self {
             platform,
             renderer: Renderer::new(),
-            ui: Ui::new(player),
+            ui: Ui::new(),
+            ctx,
             last_update: Instant::now(),
             next_frame: Instant::now(),
             running: true,
-            music,
         })
     }
 
@@ -61,10 +60,10 @@ impl<P: Platform, S: Read + Write + 'static> App<P, S> {
         let dt = now.duration_since(self.last_update);
         self.last_update = now;
 
-        self.music.poll();
-        self.ui.update(dt);
+        self.ctx.tick();
+        self.ui.update(&mut self.ctx, dt);
         for event in self.platform.poll_events() {
-            self.ui.handle_input(event);
+            self.ui.handle_input(event, &mut self.ctx);
         }
 
         Ok(())
