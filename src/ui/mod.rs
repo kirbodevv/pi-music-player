@@ -26,9 +26,17 @@ impl Ui {
         }
     }
 
-    fn change_screen(&mut self, screen: ScreenId) {
+    fn change_screen(&mut self, screen: ScreenId, ctx: &mut Context) {
+        if let Some(current) = self.screens.get_mut(&self.screen) {
+            current.on_leave(ctx);
+        }
+
         self.screen = screen;
         self.need_to_clear = true;
+
+        if let Some(next) = self.screens.get_mut(&self.screen) {
+            next.on_enter(ctx);
+        }
     }
 
     pub fn update(&mut self, ctx: &mut Context, dt: Duration) {
@@ -57,11 +65,11 @@ impl Ui {
 
         match transition {
             Transition::Open(screen) => {
-                self.change_screen(screen.clone());
+                self.change_screen(screen, ctx);
             }
 
             Transition::Back => {
-                self.change_screen(ScreenId::Launcher);
+                self.change_screen(ScreenId::Launcher, ctx);
             }
             Transition::None => {}
         };
