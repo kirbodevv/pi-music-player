@@ -1,7 +1,7 @@
 use crate::{
     context::Context,
     event::InputEvent,
-    renderer::{Rect, Renderer, Size},
+    renderer::{Rect, Renderer, Size, font::Font},
     ui::{
         screen::Transition,
         widget::{ButtonStyle, Label, LayoutParams, TextAlign, VerticalAlign, Widget},
@@ -42,6 +42,13 @@ impl Button {
 
         label.set_bounds(self.rect);
         self.label = Some(label);
+        self
+    }
+
+    pub fn with_text_font(mut self, font: &'static Font) -> Self {
+        if let Some(label) = self.label {
+            self.label = Some(label.with_font(font));
+        }
         self
     }
 

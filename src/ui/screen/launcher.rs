@@ -288,7 +288,9 @@ impl Screen for Launcher {
             self.set_track_labels(track.as_ref());
 
             let cover = match &path {
-                Some(path) => ctx.artwork.cover_for(path),
+                Some(path) => ctx
+                    .artwork
+                    .cover_for(path, crate::artwork::DEFAULT_COVER_SIZE),
                 None => Image::default(),
             };
             self.cover.set(cover);

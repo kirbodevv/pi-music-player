@@ -1,4 +1,5 @@
 pub mod launcher;
+pub mod music;
 
 use std::time::Duration;
 

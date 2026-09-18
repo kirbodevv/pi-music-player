@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
-use crate::music::player::AudioPlayer;
+use crate::music::player::{AudioPlayer, PlayerState};
 use crate::music::track::Track;
 
 /// Minimum time between polling the underlying player for fresh state.
@@ -24,6 +24,7 @@ pub struct MusicService {
     player: SharedPlayer,
     current_track: Option<Track>,
     current_song_path: Option<PathBuf>,
+    current_state: PlayerState,
     last_poll: Instant,
 }
 
@@ -33,6 +34,7 @@ impl MusicService {
             player,
             current_track: None,
             current_song_path: None,
+            current_state: PlayerState::Stopped,
             // Force an immediate poll on the first call.
             last_poll: Instant::now() - POLL_INTERVAL,
         }
@@ -58,6 +60,10 @@ impl MusicService {
         self.current_song_path.as_ref()
     }
 
+    pub fn state(&self) -> PlayerState {
+        self.current_state
+    }
+
     /// Refreshes cached player state, throttled to `POLL_INTERVAL` so that
     /// callers can invoke this every frame without hammering the connection.
     pub fn poll(&mut self) {
@@ -75,6 +81,10 @@ impl MusicService {
         } else {
             self.current_track = None;
             self.current_song_path = None;
+        }
+
+        if let Ok(state) = player.state() {
+            self.current_state = state;
         }
     }
 }

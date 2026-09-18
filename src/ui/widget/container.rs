@@ -10,8 +10,9 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum ContainerDirection {
+    #[default]
     Vertical,
     Horizontal,
 }
@@ -21,6 +22,7 @@ pub struct Child {
     layout: LayoutParams,
 }
 
+#[derive(Default)]
 pub struct Container {
     rect: Rect,
     children: Vec<Child>,

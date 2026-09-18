@@ -1,0 +1,201 @@
+use std::path::PathBuf;
+use std::time::Duration;
+
+use crate::{
+    context::Context,
+    event::InputEvent,
+    music::player::PlayerState,
+    renderer::{FONT_16, Image, Rect, Renderer, color::Color},
+    ui::{
+        screen::{Screen, Transition},
+        widget::{
+            Button, ButtonStyle, Container, ContainerDirection, ContainerStyle, Dimension,
+            ImageHandle, ImageWidget, Label, LayoutParams, TextAlign, VerticalAlign, Widget,
+        },
+    },
+};
+
+const COVER_SIZE: usize = 262;
+
+pub struct MusicScreen {
+    root: Container,
+    /*title: LabelHandle,
+    artist: LabelHandle,
+    status: LabelHandle,*/
+    cover: ImageHandle,
+    displayed_track_path: Option<PathBuf>,
+}
+
+impl MusicScreen {
+    pub fn new() -> Self {
+        let button_style = ButtonStyle::default().with_radius(8);
+
+        /*
+         * HEADER
+         */
+
+        let back = Button::new()
+            .with_text("BACK")
+            .with_text_font(&FONT_16)
+            .with_style(button_style)
+            .on_click(Box::new(|_ctx: &mut Context| Transition::Back));
+
+        let heading = Label::new("Now Playing")
+            .with_font(&FONT_16)
+            .with_color(Color::rgb(240, 240, 245))
+            .with_text_align(TextAlign::Center)
+            .with_vertical_align(VerticalAlign::Center);
+
+        let header = Container::default()
+            .with_direction(ContainerDirection::Horizontal)
+            .with_spacing(8)
+            .with_child(
+                back,
+                LayoutParams {
+                    width: Dimension::Fixed(70),
+                    height: Dimension::Fixed(30),
+                },
+            )
+            .with_child(
+                heading,
+                LayoutParams {
+                    width: Dimension::Fill,
+                    height: Dimension::Fixed(30),
+                },
+            )
+            .with_child(
+                Container::default(),
+                LayoutParams {
+                    width: Dimension::Fixed(70),
+                    height: Dimension::Fixed(30),
+                },
+            );
+
+        /*
+         * NOW PLAYING
+         */
+
+        let cover = ImageWidget::new(Image::default());
+        let cover_handle = cover.handle();
+
+        let now_playing = Container::new(Rect::default())
+            .with_padding(8)
+            .with_spacing(20)
+            .with_direction(ContainerDirection::Horizontal)
+            .with_style(
+                ContainerStyle::default()
+                    .with_background(Color::rgb(30, 30, 70))
+                    .with_radius(8),
+            )
+            .with_child(
+                Container::new(Rect::default()),
+                LayoutParams {
+                    width: Dimension::Fill,
+                    height: Dimension::Fill,
+                },
+            )
+            .with_child(
+                cover,
+                LayoutParams {
+                    width: Dimension::Fixed(COVER_SIZE),
+                    height: Dimension::Fixed(COVER_SIZE),
+                },
+            )
+            .with_child(
+                Container::new(Rect::default()),
+                LayoutParams {
+                    width: Dimension::Fill,
+                    height: Dimension::Fill,
+                },
+            );
+
+        /*
+         * ROOT
+         */
+
+        let root = Container::new(Rect::new(0, 0, 480, 320))
+            .with_padding(4)
+            .with_spacing(4)
+            .with_child(
+                header,
+                LayoutParams {
+                    width: Dimension::Fill,
+                    height: Dimension::Fixed(30),
+                },
+            )
+            .with_child(
+                now_playing,
+                LayoutParams {
+                    width: Dimension::Fill,
+                    height: Dimension::Fill,
+                },
+            );
+
+        Self {
+            root,
+            /*title: title_handle,
+            artist: artist_handle,
+            status: status_handle,*/
+            cover: cover_handle,
+            displayed_track_path: None,
+        }
+    }
+
+    /*fn set_track_labels(&mut self, track: Option<&Track>) {
+        let mut title = self.title.borrow_mut();
+        let mut artist = self.artist.borrow_mut();
+
+        match track {
+            Some(track) => {
+                *title = track.title.clone();
+                *artist = track.artist.clone();
+            }
+
+            None => {
+                *title = "Нет трека".to_string();
+                *artist = String::new();
+            }
+        }
+    }*/
+
+    fn set_status_label(&mut self, state: PlayerState) {
+        let text = match state {
+            PlayerState::Playing => "Playing",
+            PlayerState::Paused => "Paused",
+            PlayerState::Stopped => "Stopped",
+        };
+
+        //*self.status.borrow_mut() = text.to_string();
+    }
+}
+
+impl Screen for MusicScreen {
+    fn update(&mut self, ctx: &mut Context, dt: Duration) {
+        self.root.update(dt);
+
+        let path = ctx.music.current_song_path().cloned();
+
+        if path != self.displayed_track_path {
+            self.displayed_track_path = path.clone();
+
+            let track = ctx.music.current_track().cloned();
+            //self.set_track_labels(track.as_ref());
+
+            let cover = match &path {
+                Some(path) => ctx.artwork.cover_for(path, COVER_SIZE as u32),
+                None => Image::default(),
+            };
+            self.cover.set(cover);
+        }
+
+        self.set_status_label(ctx.music.state());
+    }
+
+    fn render(&mut self, renderer: &mut Renderer) {
+        self.root.render(renderer);
+    }
+
+    fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition {
+        self.root.handle_input(event, ctx)
+    }
+}
