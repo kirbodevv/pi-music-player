@@ -44,6 +44,10 @@ impl Color {
 
     pub const TRANSPARENT: Self = Self::rgba(0, 0, 0, 0);
 
+    pub fn invert(self) -> Self {
+        Self::rgb(255 - self.r, 255 - self.g, 255 - self.b)
+    }
+
     pub const fn to_rgb565(self) -> u16 {
         let r = (self.r as u16 >> 3) & 0x1F;
         let g = (self.g as u16 >> 2) & 0x3F;

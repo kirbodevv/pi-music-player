@@ -1,7 +1,7 @@
 use crate::{
     context::Context,
     event::InputEvent,
-    renderer::{Rect, Renderer, Size, font::Font},
+    renderer::{Icon, Rect, Renderer, Size, font::Font},
     ui::{
         screen::Transition,
         widget::{ButtonStyle, Label, LayoutParams, TextAlign, VerticalAlign, Widget},
@@ -19,6 +19,9 @@ pub struct Button {
     state: ButtonState,
 
     label: Option<Label>,
+    icon: Option<Icon>,
+    icon_padding: usize,
+
     callback: Option<Box<dyn Fn(&mut Context) -> Transition>>,
 
     style: ButtonStyle,
@@ -30,6 +33,8 @@ impl Button {
             rect: Rect::new(0, 0, 0, 0),
             state: ButtonState::Normal,
             label: None,
+            icon: None,
+            icon_padding: 0,
             callback: None,
             style: ButtonStyle::default(),
         }
@@ -49,6 +54,12 @@ impl Button {
         if let Some(label) = self.label {
             self.label = Some(label.with_font(font));
         }
+        self
+    }
+
+    pub fn with_icon(mut self, icon: Icon, padding: usize) -> Self {
+        self.icon = Some(icon);
+        self.icon_padding = padding;
         self
     }
 
@@ -104,6 +115,14 @@ impl Button {
 
         if let Some(label) = &self.label {
             label.render(renderer);
+        }
+
+        if let Some(icon) = &self.icon {
+            renderer.draw_icon(
+                *icon,
+                self.rect.pad(self.icon_padding),
+                self.style.background.invert(),
+            );
         }
     }
 

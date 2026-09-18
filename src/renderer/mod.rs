@@ -55,6 +55,15 @@ impl Rect {
 
         Rect::new(x1, y1, x2 - x1, y2 - y1)
     }
+
+    pub fn pad(self, padding: usize) -> Rect {
+        Rect::new(
+            self.x + padding,
+            self.y + padding,
+            self.width - padding * 2,
+            self.height - padding * 2,
+        )
+    }
 }
 
 pub struct Renderer {

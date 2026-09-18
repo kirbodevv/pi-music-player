@@ -5,7 +5,7 @@ use crate::{
     context::Context,
     event::InputEvent,
     music::player::PlayerState,
-    renderer::{FONT_16, Image, Rect, Renderer, color::Color},
+    renderer::{FONT_16, Icon, Image, Rect, Renderer, color::Color},
     ui::{
         screen::{Screen, Transition},
         widget::{
@@ -35,8 +35,7 @@ impl MusicScreen {
          */
 
         let back = Button::new()
-            .with_text("BACK")
-            .with_text_font(&FONT_16)
+            .with_icon(Icon::ArrowLeft, 4)
             .with_style(button_style)
             .on_click(Box::new(|_ctx: &mut Context| Transition::Back));
 
@@ -52,8 +51,8 @@ impl MusicScreen {
             .with_child(
                 back,
                 LayoutParams {
-                    width: Dimension::Fixed(70),
-                    height: Dimension::Fixed(30),
+                    width: Dimension::Fixed(32),
+                    height: Dimension::Fixed(32),
                 },
             )
             .with_child(
@@ -66,8 +65,8 @@ impl MusicScreen {
             .with_child(
                 Container::default(),
                 LayoutParams {
-                    width: Dimension::Fixed(70),
-                    height: Dimension::Fixed(30),
+                    width: Dimension::Fixed(32),
+                    height: Dimension::Fixed(32),
                 },
             );
 
