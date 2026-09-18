@@ -7,7 +7,7 @@ use std::{collections::HashMap, time::Duration};
 use crate::{
     context::Context,
     event::InputEvent,
-    renderer::{Renderer, color::Color},
+    renderer::{Rect, Renderer, color::Color, icon},
     ui::screen::{Screen, ScreenId, Transition},
 };
 
@@ -54,6 +54,29 @@ impl Ui {
         if let Some(screen) = self.screens.get_mut(&self.screen) {
             screen.render(renderer);
         }
+        renderer.draw_icon(
+            icon::Icon::ArrowLeft,
+            Rect::new(24 * 0, 0, 24, 24),
+            Color::BLUE,
+        );
+        renderer.draw_icon(icon::Icon::Music, Rect::new(24 * 1, 0, 24, 24), Color::BLUE);
+        renderer.draw_icon(icon::Icon::Pause, Rect::new(24 * 2, 0, 24, 24), Color::BLUE);
+        renderer.draw_icon(icon::Icon::Play, Rect::new(24 * 3, 0, 24, 24), Color::BLUE);
+        renderer.draw_icon(
+            icon::Icon::Settings,
+            Rect::new(24 * 4, 0, 24, 24),
+            Color::BLUE,
+        );
+        renderer.draw_icon(
+            icon::Icon::SkipBack,
+            Rect::new(24 * 5, 0, 24, 24),
+            Color::BLUE,
+        );
+        renderer.draw_icon(
+            icon::Icon::SkipForward,
+            Rect::new(24 * 6, 0, 24, 24),
+            Color::BLUE,
+        );
     }
 
     pub fn handle_input(&mut self, event: InputEvent, ctx: &mut Context) {

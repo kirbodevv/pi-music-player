@@ -2,6 +2,7 @@ use crate::renderer::color::Color;
 
 pub mod color;
 pub mod font;
+pub mod icon;
 pub mod image;
 pub mod primitives;
 pub mod text;
@@ -12,6 +13,7 @@ pub const WIDTH: usize = 480;
 pub const HEIGHT: usize = 320;
 
 pub use font::{FONT_12, FONT_16, FONT_20, FONT_24, FONT_32};
+pub use icon::*;
 
 pub struct Size {
     pub width: usize,

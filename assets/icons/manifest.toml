@@ -1,0 +1,12 @@
+version = "0.544.0"
+size = 24
+
+icons = [
+  "arrow-left",
+  "play",
+  "pause",
+  "skip-back",
+  "skip-forward",
+  "settings",
+  "music",
+]
