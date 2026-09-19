@@ -10,7 +10,8 @@ use crate::{
         screen::{Screen, Transition},
         widget::{
             Button, ButtonStyle, Container, ContainerDirection, ContainerStyle, Dimension,
-            ImageHandle, ImageWidget, Label, LayoutParams, TextAlign, VerticalAlign, Widget,
+            ImageHandle, ImageWidget, Label, LayoutParams, ProgressBar, ProgressBarHandle,
+            TextAlign, VerticalAlign, Widget,
         },
     },
 };
@@ -22,6 +23,7 @@ pub struct MusicScreen {
     /*title: LabelHandle,
     artist: LabelHandle,
     status: LabelHandle,*/
+    progress_bar: ProgressBarHandle,
     cover: ImageHandle,
     displayed_track_path: Option<PathBuf>,
 }
@@ -77,6 +79,11 @@ impl MusicScreen {
         let cover = ImageWidget::new(Image::default());
         let cover_handle = cover.handle();
 
+        let progress_bar = ProgressBar::new().with_min_value(0.).with_max_value(1.);
+        let progress_bar_handle = progress_bar.handle();
+
+        progress_bar_handle.borrow_mut().set_value(50.);
+
         let now_playing = Container::new(Rect::default())
             .with_padding(8)
             .with_spacing(20)
@@ -87,13 +94,6 @@ impl MusicScreen {
                     .with_radius(8),
             )
             .with_child(
-                Container::new(Rect::default()),
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fill,
-                },
-            )
-            .with_child(
                 cover,
                 LayoutParams {
                     width: Dimension::Fixed(COVER_SIZE),
@@ -101,10 +101,10 @@ impl MusicScreen {
                 },
             )
             .with_child(
-                Container::new(Rect::default()),
+                progress_bar,
                 LayoutParams {
                     width: Dimension::Fill,
-                    height: Dimension::Fill,
+                    height: Dimension::Fixed(10),
                 },
             );
 
@@ -135,9 +135,16 @@ impl MusicScreen {
             /*title: title_handle,
             artist: artist_handle,
             status: status_handle,*/
+            progress_bar: progress_bar_handle,
             cover: cover_handle,
             displayed_track_path: None,
         }
+    }
+
+    fn set_progress_bar(&mut self, position: Duration, duration: Duration) {
+        let mut progress_bar = self.progress_bar.borrow_mut();
+        let value = position.as_secs_f64() / duration.as_secs_f64();
+        progress_bar.set_value(value);
     }
 
     /*fn set_track_labels(&mut self, track: Option<&Track>) {
@@ -186,7 +193,10 @@ impl Screen for MusicScreen {
             };
             self.cover.set(cover);
         }
+        let position = ctx.music.current_position();
+        let duration = ctx.music.current_duration();
 
+        self.set_progress_bar(position, duration);
         self.set_status_label(ctx.music.state());
     }
 

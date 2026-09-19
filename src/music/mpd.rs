@@ -83,6 +83,12 @@ where
             .unwrap_or_default())
     }
 
+    fn duration(&mut self) -> Result<Duration, mpd::error::Error> {
+        let status = self.client.status()?;
+
+        Ok(status.duration.unwrap_or_default())
+    }
+
     fn position(&mut self) -> Result<Duration, mpd::error::Error> {
         let status = self.client.status()?;
 

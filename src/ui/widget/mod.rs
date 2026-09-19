@@ -3,6 +3,7 @@ pub mod container;
 pub mod image;
 pub mod label;
 pub mod layout;
+pub mod progress_bar;
 pub mod style;
 
 pub use button::*;
@@ -10,6 +11,7 @@ pub use container::*;
 pub use image::*;
 pub use label::*;
 pub use layout::*;
+pub use progress_bar::*;
 pub use style::*;
 
 use std::time::Duration;
@@ -28,9 +30,13 @@ pub trait Widget {
 
     fn preferred_size(&self) -> Size;
 
-    fn layout_params(&self) -> LayoutParams;
+    fn layout_params(&self) -> LayoutParams {
+        LayoutParams::default()
+    }
 
-    fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition;
+    fn handle_input(&mut self, _event: &InputEvent, _ctx: &mut Context) -> Transition {
+        Transition::None
+    }
 
     fn render(&self, renderer: &mut Renderer);
 

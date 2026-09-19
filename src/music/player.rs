@@ -21,5 +21,6 @@ pub trait AudioPlayer {
     fn state(&mut self) -> Result<PlayerState, Self::Error>;
     fn current_track(&mut self) -> Result<Option<Track>, Self::Error>;
     fn current_song_path(&mut self) -> Result<PathBuf, Self::Error>;
+    fn duration(&mut self) -> Result<Duration, Self::Error>;
     fn position(&mut self) -> Result<Duration, Self::Error>;
 }

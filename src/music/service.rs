@@ -25,6 +25,8 @@ pub struct MusicService {
     current_track: Option<Track>,
     current_song_path: Option<PathBuf>,
     current_state: PlayerState,
+    current_position: Duration,
+    current_duration: Duration,
     last_poll: Instant,
 }
 
@@ -35,7 +37,8 @@ impl MusicService {
             current_track: None,
             current_song_path: None,
             current_state: PlayerState::Stopped,
-            // Force an immediate poll on the first call.
+            current_position: Duration::default(),
+            current_duration: Duration::default(),
             last_poll: Instant::now() - POLL_INTERVAL,
         }
     }
@@ -60,6 +63,14 @@ impl MusicService {
         self.current_song_path.as_ref()
     }
 
+    pub fn current_position(&self) -> Duration {
+        self.current_position
+    }
+
+    pub fn current_duration(&self) -> Duration {
+        self.current_duration
+    }
+
     pub fn state(&self) -> PlayerState {
         self.current_state
     }
@@ -78,6 +89,12 @@ impl MusicService {
             let path = player.current_song_path().ok();
             self.current_track = Some(track);
             self.current_song_path = path;
+            if let Ok(position) = player.position() {
+                self.current_position = position;
+            }
+            if let Ok(duration) = player.duration() {
+                self.current_duration = duration;
+            }
         } else {
             self.current_track = None;
             self.current_song_path = None;
