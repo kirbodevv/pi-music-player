@@ -5,7 +5,7 @@ use crate::{
     context::Context,
     event::InputEvent,
     music::track::Track,
-    renderer::{FONT_16, FONT_24, Image, Rect, Renderer, color::Color},
+    renderer::{FONT_16, FONT_24, Icon, Image, Rect, Renderer, color::Color},
     ui::{
         screen::{Screen, ScreenId, Transition},
         widget::{
@@ -20,9 +20,6 @@ pub struct Launcher {
     now_playing_title: LabelHandle,
     now_playing_artist: LabelHandle,
     cover: ImageHandle,
-    // Tracks what is currently displayed so `update()` (called every frame)
-    // doesn't reload the cover image from disk unless the track has
-    // actually changed since `MusicService` was last polled.
     displayed_track_path: Option<PathBuf>,
 }
 
@@ -70,7 +67,7 @@ impl Launcher {
          */
 
         let previous = Button::new()
-            .with_text("<<")
+            .with_icon(Icon::SkipBack, 18)
             .with_style(button_style)
             .on_click(Box::new(|ctx: &mut Context| {
                 ctx.music.previous();
@@ -78,7 +75,7 @@ impl Launcher {
             }));
 
         let pause_play = Button::new()
-            .with_text(">")
+            .with_icon(Icon::Play, 18)
             .with_style(button_style)
             .on_click(Box::new(|ctx: &mut Context| {
                 ctx.music.play_pause();
@@ -86,7 +83,7 @@ impl Launcher {
             }));
 
         let next = Button::new()
-            .with_text(">>")
+            .with_icon(Icon::SkipForward, 18)
             .with_style(button_style)
             .on_click(Box::new(|ctx: &mut Context| {
                 ctx.music.next();
