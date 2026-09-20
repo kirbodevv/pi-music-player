@@ -62,6 +62,8 @@ impl Platform for Desktop {
     }
 
     fn poll_events(&mut self) -> Vec<InputEvent> {
+        self.window.update();
+
         let mut events = Vec::new();
 
         let Some((x, y)) = self.window.get_mouse_pos(MouseMode::Clamp) else {
