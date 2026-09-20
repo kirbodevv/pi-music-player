@@ -10,16 +10,16 @@ use crate::{
         screen::{Screen, ScreenId, Transition},
         widget::{
             Button, ButtonIconHandle, ButtonStyle, Container, ContainerDirection, ContainerStyle,
-            Dimension, ImageHandle, ImageWidget, Label, LabelHandle, LayoutParams, TextAlign,
-            Widget,
+            Dimension, Handle, ImageHandle, ImageWidget, Label, LabelState, LayoutParams,
+            TextAlign, Widget,
         },
     },
 };
 
 pub struct Launcher {
     root: Container,
-    now_playing_title: LabelHandle,
-    now_playing_artist: LabelHandle,
+    now_playing_title: Handle<LabelState>,
+    now_playing_artist: Handle<LabelState>,
     cover: ImageHandle,
     play_pause_button_icon: ButtonIconHandle,
     displayed_track_path: Option<PathBuf>,
@@ -265,18 +265,23 @@ impl Launcher {
     }
 
     fn set_track_labels(&mut self, track: Option<&Track>) {
-        let mut title = self.now_playing_title.borrow_mut();
-        let mut artist = self.now_playing_artist.borrow_mut();
-
         match track {
             Some(track) => {
-                *title = track.title.clone();
-                *artist = track.artist.clone();
+                self.now_playing_title.modify(|s| {
+                    s.text = track.title.clone();
+                });
+                self.now_playing_artist.modify(|s| {
+                    s.text = track.artist.clone();
+                });
             }
 
             None => {
-                *title = "Нет трека".to_string();
-                *artist = String::new();
+                self.now_playing_title.modify(|s| {
+                    s.text = "Нет трека".to_string();
+                });
+                self.now_playing_artist.modify(|s| {
+                    s.text = String::new();
+                });
             }
         }
     }

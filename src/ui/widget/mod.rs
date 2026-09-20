@@ -1,5 +1,6 @@
 pub mod button;
 pub mod container;
+pub mod handle;
 pub mod image;
 pub mod label;
 pub mod layout;
@@ -8,6 +9,7 @@ pub mod style;
 
 pub use button::*;
 pub use container::*;
+pub use handle::*;
 pub use image::*;
 pub use label::*;
 pub use layout::*;
