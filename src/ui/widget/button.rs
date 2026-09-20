@@ -46,8 +46,8 @@ impl Button {
 
     pub fn text(mut self, text: &str) -> Self {
         let mut label = Label::new(text)
-            .with_text_align(TextAlign::Center)
-            .with_vertical_align(VerticalAlign::Center);
+            .text_align(TextAlign::Center)
+            .vertical_align(VerticalAlign::Center);
 
         label.set_bounds(self.rect);
         self.label = Some(label);
@@ -56,7 +56,7 @@ impl Button {
 
     pub fn text_font(mut self, font: &'static Font) -> Self {
         if let Some(label) = self.label {
-            self.label = Some(label.with_font(font));
+            self.label = Some(label.font(font));
         }
         self
     }

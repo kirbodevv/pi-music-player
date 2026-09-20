@@ -40,11 +40,11 @@ impl MusicScreen {
             .on_click(|_ctx: &mut Context| Transition::Back);
 
         let heading = Label::new("Now Playing")
-            .with_font(&FONT_16)
-            .with_color(Color::rgb(240, 240, 245))
-            .with_text_align(TextAlign::Center)
-            .with_vertical_align(VerticalAlign::Center)
-            .with_background(Color::rgb(15, 15, 20));
+            .font(&FONT_16)
+            .color(Color::rgb(240, 240, 245))
+            .text_align(TextAlign::Center)
+            .vertical_align(VerticalAlign::Center)
+            .background(Color::rgb(15, 15, 20));
 
         let header = Container::default()
             .direction(ContainerDirection::Horizontal)
@@ -76,15 +76,15 @@ impl MusicScreen {
          */
 
         let track_title = Label::new("Нет трека")
-            .with_font(&FONT_24)
-            .with_color(Color::WHITE)
-            .with_background(Color::rgb(30, 30, 70));
+            .font(&FONT_24)
+            .color(Color::WHITE)
+            .background(Color::rgb(30, 30, 70));
         let now_playing_title = track_title.handle();
 
         let track_artist = Label::new("")
-            .with_font(&FONT_16)
-            .with_color(Color::rgb(130, 135, 150))
-            .with_background(Color::rgb(30, 30, 70));
+            .font(&FONT_16)
+            .color(Color::rgb(130, 135, 150))
+            .background(Color::rgb(30, 30, 70));
         let now_playing_artist = track_artist.handle();
 
         let cover = ImageWidget::new(Image::default()).radius(8);

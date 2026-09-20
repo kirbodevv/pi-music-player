@@ -29,15 +29,15 @@ impl Launcher {
         const SCREEN_BACKGROUND: Color = Color::rgb(15, 15, 20);
 
         let title = Label::new("Main Menu")
-            .with_font(&FONT_24)
-            .with_color(Color::rgb(240, 240, 245))
-            .with_background(SCREEN_BACKGROUND);
+            .font(&FONT_24)
+            .color(Color::rgb(240, 240, 245))
+            .background(SCREEN_BACKGROUND);
 
         let status = Label::new("12:48   •   78%")
-            .with_font(&FONT_16)
-            .with_color(Color::rgb(150, 155, 170))
-            .with_text_align(TextAlign::Right)
-            .with_background(SCREEN_BACKGROUND);
+            .font(&FONT_16)
+            .color(Color::rgb(150, 155, 170))
+            .text_align(TextAlign::Right)
+            .background(SCREEN_BACKGROUND);
 
         let header = Container::new(Rect::default())
             .direction(ContainerDirection::Horizontal)
@@ -84,9 +84,9 @@ impl Launcher {
                     .spacing(4)
                     .with_child(
                         Label::new("СЕЙЧАС ИГРАЕТ")
-                            .with_font(&FONT_16)
-                            .with_color(Color::rgb(130, 135, 150))
-                            .with_background(NOW_PLAYING_BACKGROUND),
+                            .font(&FONT_16)
+                            .color(Color::rgb(130, 135, 150))
+                            .background(NOW_PLAYING_BACKGROUND),
                         LayoutParams {
                             width: Dimension::Fill,
                             height: Dimension::Fixed(20),

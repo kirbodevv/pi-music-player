@@ -78,14 +78,14 @@ impl Label {
         }
     }
 
-    pub fn with_font(self, font: &'static Font) -> Self {
+    pub fn font(self, font: &'static Font) -> Self {
         self.state.modify(|s| {
             s.font = font;
         });
         self
     }
 
-    pub fn with_color(self, color: Color) -> Self {
+    pub fn color(self, color: Color) -> Self {
         self.state.modify(|state| {
             state.color = color;
         });
@@ -93,15 +93,15 @@ impl Label {
         self
     }
 
-    pub fn with_bounds(self, rect: Rect) -> Self {
+    pub fn bounds(self, rect: Rect) -> Self {
         Self { rect, ..self }
     }
 
-    pub fn with_text_align(self, text_align: TextAlign) -> Self {
+    pub fn text_align(self, text_align: TextAlign) -> Self {
         Self { text_align, ..self }
     }
 
-    pub fn with_vertical_align(self, vertical_align: VerticalAlign) -> Self {
+    pub fn vertical_align(self, vertical_align: VerticalAlign) -> Self {
         Self {
             vertical_align,
             ..self
@@ -118,7 +118,7 @@ impl Label {
     /// time the label redraws, which - since the same edge gets blended
     /// again and again onto its own previous result - keeps converging
     /// towards the full glyph color until it looks blown out/oversharpened.
-    pub fn with_background(self, background: Color) -> Self {
+    pub fn background(self, background: Color) -> Self {
         self.state.modify(|state| {
             state.background = Some(background);
         });
