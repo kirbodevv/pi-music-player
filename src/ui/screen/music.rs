@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use crate::{
+    artwork::{Artwork, ArtworkTheme},
     context::Context,
     event::InputEvent,
     renderer::{FONT_16, Icon, Image, Rect, Renderer, color::Color},
@@ -13,6 +14,7 @@ const COVER_SIZE: usize = 262;
 pub struct MusicScreen {
     root: Container,
     progress_bar: Handle<ProgressBarState>,
+    background: Handle<ContainerState>,
     cover: Handle<ImageState>,
     displayed_track_path: Option<PathBuf>,
 }
@@ -95,6 +97,7 @@ impl MusicScreen {
                     height: Dimension::Fixed(10),
                 },
             );
+        let background = now_playing.handle();
 
         /*
          * ROOT
@@ -122,6 +125,7 @@ impl MusicScreen {
             root,
             progress_bar: progress_bar_handle,
             cover: cover_handle,
+            background,
             displayed_track_path: None,
         }
     }
@@ -141,11 +145,16 @@ impl Screen for MusicScreen {
         if path != self.displayed_track_path {
             self.displayed_track_path = path.clone();
 
-            let cover = match &path {
+            let artwork = match &path {
                 Some(path) => ctx.artwork.cover_for(path, COVER_SIZE as u32),
-                None => Image::default(),
+                None => Artwork {
+                    image: Image::default(),
+                    theme: ArtworkTheme::default(),
+                },
             };
-            self.cover.modify(|state| state.image = cover);
+            self.cover.modify(|state| state.image = artwork.image);
+            self.background
+                .modify(|state| state.style.background = Some(artwork.theme.dark));
         }
         let position = ctx.music.current_position();
         let duration = ctx.music.current_duration();

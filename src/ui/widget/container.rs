@@ -6,7 +6,7 @@ use crate::{
     renderer::{Rect, Renderer, Size},
     ui::{
         screen::Transition,
-        widget::{ContainerStyle, Dimension, LayoutParams, Widget},
+        widget::{ContainerStyle, Dimension, Handle, LayoutParams, Widget},
     },
 };
 
@@ -28,8 +28,13 @@ pub struct Container {
     direction: ContainerDirection,
     spacing: usize,
     padding: usize,
-    style: ContainerStyle,
+    state: Handle<ContainerState>,
     dirty: bool,
+}
+
+#[derive(Default)]
+pub struct ContainerState {
+    pub style: ContainerStyle,
 }
 
 impl Default for Container {
@@ -40,7 +45,7 @@ impl Default for Container {
             direction: ContainerDirection::default(),
             spacing: 0,
             padding: 0,
-            style: ContainerStyle::default(),
+            state: Handle::default(),
             dirty: true,
         }
     }
@@ -81,8 +86,8 @@ impl Container {
         self
     }
 
-    pub fn with_style(mut self, style: ContainerStyle) -> Self {
-        self.style = style;
+    pub fn with_style(self, style: ContainerStyle) -> Self {
+        self.state.modify(|state| state.style = style);
         self
     }
 
@@ -158,6 +163,7 @@ impl Container {
             y += height + self.spacing;
         }
     }
+
     fn layout_horizontal(&mut self) {
         let inner_width = self.rect.width.saturating_sub(self.padding * 2);
 
@@ -225,6 +231,10 @@ impl Container {
             x += width + self.spacing;
         }
     }
+
+    pub fn handle(&self) -> Handle<ContainerState> {
+        self.state.clone()
+    }
 }
 
 impl Widget for Container {
@@ -270,11 +280,12 @@ impl Widget for Container {
         // whether the child thinks it's individually dirty.
         let repaint_all = self.dirty;
 
+        let style = self.state.get().style;
         renderer.with_clip(bounds, |renderer| {
             if repaint_all {
-                if let Some(background) = self.style.background {
-                    if self.style.radius > 0 {
-                        renderer.fill_rounded_rect(bounds, self.style.radius, background);
+                if let Some(background) = style.background {
+                    if style.radius > 0 {
+                        renderer.fill_rounded_rect(bounds, style.radius, background);
                     } else {
                         renderer.fill_rect(bounds, background);
                     }

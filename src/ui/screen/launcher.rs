@@ -303,13 +303,15 @@ impl Screen for Launcher {
             let track = ctx.music.current_track().cloned();
             self.set_track_labels(track.as_ref());
 
-            let cover = match &path {
-                Some(path) => ctx
-                    .artwork
-                    .cover_for(path, crate::artwork::DEFAULT_COVER_SIZE),
+            let image = match &path {
+                Some(path) => {
+                    ctx.artwork
+                        .cover_for(path, crate::artwork::DEFAULT_COVER_SIZE)
+                        .image
+                }
                 None => Image::default(),
             };
-            self.cover.modify(|state| state.image = cover);
+            self.cover.modify(|state| state.image = image);
         }
         self.set_play_pause_button_icon(ctx.music.state());
     }
