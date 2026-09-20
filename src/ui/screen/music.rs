@@ -299,10 +299,14 @@ impl Screen for MusicScreen {
             self.cover.modify(|state| state.image = artwork.image);
             self.background
                 .modify(|state| state.style.background = Some(artwork.theme.dark));
-            self.now_playing_artist
-                .modify(|state| state.background = Some(artwork.theme.dark));
-            self.now_playing_title
-                .modify(|state| state.background = Some(artwork.theme.dark));
+            self.now_playing_artist.modify(|state| {
+                state.background = Some(artwork.theme.dark);
+                state.color = artwork.theme.light;
+            });
+            self.now_playing_title.modify(|state| {
+                state.background = Some(artwork.theme.dark);
+                state.color = artwork.theme.light;
+            });
         }
         let position = ctx.music.current_position();
         let duration = ctx.music.current_duration();
