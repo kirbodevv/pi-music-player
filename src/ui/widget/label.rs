@@ -108,16 +108,6 @@ impl Label {
         }
     }
 
-    /// Sets an opaque background color that gets painted behind the text
-    /// every time this label redraws.
-    ///
-    /// This is required for any label that isn't immediately preceded by an
-    /// opaque fill in the same render call (e.g. plain text sitting directly
-    /// on top of a screen/container background). Without it, anti-aliased
-    /// glyph edges get alpha-blended onto whatever was already there every
-    /// time the label redraws, which - since the same edge gets blended
-    /// again and again onto its own previous result - keeps converging
-    /// towards the full glyph color until it looks blown out/oversharpened.
     pub fn background(self, background: Color) -> Self {
         self.state.modify(|state| {
             state.background = Some(background);
