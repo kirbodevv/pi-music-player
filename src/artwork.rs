@@ -350,30 +350,22 @@ fn score_cluster(cluster: &ColorCluster) -> f32 {
 // -----------------------------------------------------------------------------
 
 fn make_dark_background(hue: f32, saturation: f32, value: f32) -> Color {
-    let background_saturation = clamp(saturation * 0.65, 0.12, 0.70);
-    let background_value = clamp(0.12 + value * 0.18, 0.12, 0.30);
+    let background_saturation = (saturation * 0.65).clamp(0.12, 0.70);
+    let background_value = (0.12 + value * 0.18).clamp(0.12, 0.30);
     Color::hsv(hue, background_saturation, background_value)
 }
 
 fn make_light_color(hue: f32, saturation: f32, value: f32) -> Color {
-    let light_saturation = clamp(saturation * 0.75, 0.20, 0.85);
+    let light_saturation = (saturation * 0.75).clamp(0.20, 0.85);
 
-    let light_value = clamp(value + 0.15, 0.45, 0.90);
+    let light_value = (value + 0.15).clamp(0.45, 0.90);
 
     Color::hsv(hue, light_saturation, light_value)
 }
 
 // -----------------------------------------------------------------------------
-// HSV → RGB
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
-
-fn clamp(value: f32, min: f32, max: f32) -> f32 {
-    value.max(min).min(max)
-}
 
 fn smoothstep(edge0: f32, edge1: f32, value: f32) -> f32 {
     if value <= edge0 {
