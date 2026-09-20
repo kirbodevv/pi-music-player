@@ -10,17 +10,11 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum ButtonState {
-    Normal,
-    Pressed,
-}
-
 pub type ButtonIconHandle = Rc<RefCell<Option<Icon>>>;
 
 pub struct Button {
     rect: Rect,
-    state: ButtonState,
+    pressed: bool,
 
     label: Option<Label>,
     icon: ButtonIconHandle,
@@ -37,7 +31,7 @@ impl Button {
     pub fn new() -> Self {
         Self {
             rect: Rect::new(0, 0, 0, 0),
-            state: ButtonState::Normal,
+            pressed: false,
             label: None,
             icon: Rc::new(RefCell::new(None)),
             last_icon: None,
@@ -102,10 +96,9 @@ impl Button {
     }
 
     fn render_rounded_button(&self, renderer: &mut Renderer) {
-        let (background, light, dark) = match self.state {
-            ButtonState::Normal => (self.style.background, self.style.light, self.style.dark),
-
-            ButtonState::Pressed => (
+        let (background, light, dark) = match self.pressed {
+            false => (self.style.background, self.style.light, self.style.dark),
+            true => (
                 self.style.pressed_background,
                 self.style.pressed_light,
                 self.style.pressed_dark,
@@ -135,10 +128,9 @@ impl Button {
     }
 
     fn render_square_button(&self, renderer: &mut Renderer) {
-        let (background, light, dark) = match self.state {
-            ButtonState::Normal => (self.style.background, self.style.light, self.style.dark),
-
-            ButtonState::Pressed => (
+        let (background, light, dark) = match self.pressed {
+            false => (self.style.background, self.style.light, self.style.dark),
+            true => (
                 self.style.pressed_background,
                 self.style.pressed_light,
                 self.style.pressed_dark,
@@ -147,71 +139,35 @@ impl Button {
 
         renderer.fill_rect(self.rect, background);
 
-        match self.state {
-            ButtonState::Normal => {
-                renderer.fill_rect(
-                    Rect::new(self.rect.x, self.rect.y, self.rect.width, 2),
-                    light,
-                );
+        renderer.fill_rect(
+            Rect::new(self.rect.x, self.rect.y, self.rect.width, 2),
+            light,
+        );
 
-                renderer.fill_rect(
-                    Rect::new(self.rect.x, self.rect.y, 2, self.rect.height),
-                    light,
-                );
+        renderer.fill_rect(
+            Rect::new(self.rect.x, self.rect.y, 2, self.rect.height),
+            light,
+        );
 
-                renderer.fill_rect(
-                    Rect::new(
-                        self.rect.x,
-                        self.rect.y + self.rect.height.saturating_sub(2),
-                        self.rect.width,
-                        2,
-                    ),
-                    dark,
-                );
+        renderer.fill_rect(
+            Rect::new(
+                self.rect.x,
+                self.rect.y + self.rect.height.saturating_sub(2),
+                self.rect.width,
+                2,
+            ),
+            dark,
+        );
 
-                renderer.fill_rect(
-                    Rect::new(
-                        self.rect.x + self.rect.width.saturating_sub(2),
-                        self.rect.y,
-                        2,
-                        self.rect.height,
-                    ),
-                    dark,
-                );
-            }
-
-            ButtonState::Pressed => {
-                renderer.fill_rect(
-                    Rect::new(self.rect.x, self.rect.y, self.rect.width, 2),
-                    dark,
-                );
-
-                renderer.fill_rect(
-                    Rect::new(self.rect.x, self.rect.y, 2, self.rect.height),
-                    dark,
-                );
-
-                renderer.fill_rect(
-                    Rect::new(
-                        self.rect.x,
-                        self.rect.y + self.rect.height.saturating_sub(2),
-                        self.rect.width,
-                        2,
-                    ),
-                    light,
-                );
-
-                renderer.fill_rect(
-                    Rect::new(
-                        self.rect.x + self.rect.width.saturating_sub(2),
-                        self.rect.y,
-                        2,
-                        self.rect.height,
-                    ),
-                    light,
-                );
-            }
-        }
+        renderer.fill_rect(
+            Rect::new(
+                self.rect.x + self.rect.width.saturating_sub(2),
+                self.rect.y,
+                2,
+                self.rect.height,
+            ),
+            dark,
+        );
 
         if let Some(label) = &self.label {
             label.render(renderer);
@@ -267,8 +223,8 @@ impl Widget for Button {
         match *event {
             InputEvent::PointDown { x, y } => {
                 if self.contains(x as usize, y as usize) {
-                    if self.state != ButtonState::Pressed {
-                        self.state = ButtonState::Pressed;
+                    if !self.pressed {
+                        self.pressed = true;
                         self.dirty = true;
                     }
                     return Transition::None;
@@ -276,8 +232,8 @@ impl Widget for Button {
             }
 
             InputEvent::PointUp { x, y } => {
-                if self.state == ButtonState::Pressed {
-                    self.state = ButtonState::Normal;
+                if self.pressed {
+                    self.pressed = false;
                     self.dirty = true;
 
                     if self.contains(x as usize, y as usize) {
