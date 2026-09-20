@@ -5,7 +5,10 @@ use crate::{
     context::Context,
     event::InputEvent,
     renderer::{FONT_16, FONT_24, Image, Rect, Renderer, color::Color},
-    ui::prelude::*,
+    ui::{
+        prelude::*,
+        widget::Dimension::{Auto, Fill, Fixed},
+    },
 };
 
 pub struct Launcher {
@@ -18,51 +21,33 @@ impl Launcher {
     pub fn new() -> Self {
         let button_style = ButtonStyle::default().with_radius(8).with_icon_padding(18);
 
-        let mut root = Container::new(Rect::new(0, 0, 480, 320))
-            .padding(16)
-            .spacing(10);
-
-        /*
-         * HEADER
-         */
-
         const SCREEN_BACKGROUND: Color = Color::rgb(15, 15, 20);
 
-        let title = Label::new("Main Menu")
+        let title = label()
+            .text("Main Menu")
             .font(&FONT_24)
             .color(Color::rgb(240, 240, 245))
             .background(SCREEN_BACKGROUND);
 
-        let status = Label::new("12:48   •   78%")
+        let status = label()
+            .text("12:48   •   78%")
             .font(&FONT_16)
             .color(Color::rgb(150, 155, 170))
             .text_align(TextAlign::Right)
             .background(SCREEN_BACKGROUND);
 
-        let header = Container::new(Rect::default())
+        let header = container()
             .direction(ContainerDirection::Horizontal)
             .spacing(8)
-            .with_child(
-                title,
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fixed(32),
-                },
-            )
-            .with_child(
-                status,
-                LayoutParams {
-                    width: Dimension::Auto,
-                    height: Dimension::Fixed(32),
-                },
-            );
+            .with_child(title, layout(Fill, Fixed(32)))
+            .with_child(status, layout(Auto, Fixed(32)));
 
         const NOW_PLAYING_BACKGROUND: Color = Color::rgb(30, 30, 70);
 
-        let cover = ImageWidget::new(Image::default());
+        let cover = image();
         let cover_handle = cover.handle();
 
-        let now_playing = Container::new(Rect::default())
+        let now_playing = container()
             .padding(12)
             .spacing(14)
             .direction(ContainerDirection::Horizontal)
@@ -71,90 +56,50 @@ impl Launcher {
                     .with_background(Color::rgb(30, 30, 70))
                     .with_radius(8),
             )
+            .with_child(cover, layout(Fixed(150), Fixed(150)))
             .with_child(
-                cover,
-                LayoutParams {
-                    width: Dimension::Fixed(150),
-                    height: Dimension::Fixed(150),
-                },
-            )
-            .with_child(
-                Container::new(Rect::default())
+                container()
                     .direction(ContainerDirection::Vertical)
                     .spacing(4)
                     .with_child(
-                        Label::new("СЕЙЧАС ИГРАЕТ")
+                        label()
+                            .text("СЕЙЧАС ИГРАЕТ")
                             .font(&FONT_16)
                             .color(Color::rgb(130, 135, 150))
                             .background(NOW_PLAYING_BACKGROUND),
-                        LayoutParams {
-                            width: Dimension::Fill,
-                            height: Dimension::Fixed(20),
-                        },
+                        layout(Fill, Fixed(20)),
                     ),
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fill,
-                },
+                layout(Fill, Fill),
             );
-        /*
-         * APPLICATIONS
-         */
 
-        let music = Button::new()
+        let music = button()
             .text("MUSIC")
             .style(button_style)
             .on_click(|_ctx: &mut Context| Transition::Open(ScreenId::Music));
 
-        let settings = Button::new()
+        let settings = button()
             .text("SETTINGS")
             .style(button_style)
             .on_click(|_ctx: &mut Context| Transition::Open(ScreenId::Settings));
 
-        let row = Container::new(Rect::default())
+        let row = container()
             .direction(ContainerDirection::Horizontal)
             .spacing(10)
-            .with_child(
-                music,
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fill,
-                },
-            )
-            .with_child(
-                settings,
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fill,
-                },
-            );
+            .with_child(music, layout(Fill, Fill))
+            .with_child(settings, layout(Fill, Fill));
 
         /*
          * ROOT
          */
 
-        root = root
-            .with_child(
-                header,
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fixed(32),
-                },
-            )
-            .with_child(
-                now_playing,
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fixed(185),
-                },
-            )
-            .with_child(
-                row,
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fill,
-                },
-            );
+        let root = container()
+            .rect(Rect::new(0, 0, 480, 320))
+            .padding(16)
+            .spacing(10)
+            .with_child(header, layout(Fill, Fixed(32)))
+            .with_child(now_playing, layout(Fill, Fixed(185)))
+            .with_child(row, layout(Fill, Fill));
+
         Self {
             root,
             cover: cover_handle,

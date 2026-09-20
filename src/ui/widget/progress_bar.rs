@@ -3,6 +3,7 @@ use crate::{
     ui::widget::{Handle, Widget},
 };
 
+#[derive(Default)]
 pub struct ProgressBar {
     rect: Rect,
     state: Handle<ProgressBarState>,
@@ -59,15 +60,6 @@ impl Default for ProgressBarState {
 }
 
 impl ProgressBar {
-    pub fn new() -> Self {
-        Self {
-            rect: Rect::default(),
-            state: Handle::default(),
-            last_version: 0,
-            dirty: true,
-        }
-    }
-
     pub fn min(self, min_value: f64) -> Self {
         self.state.modify(|state| state.min_value = min_value);
         self
@@ -146,4 +138,8 @@ impl Widget for ProgressBar {
         renderer.fill_rect(bounds, background_color);
         renderer.fill_rect(progress_bounds, progress_color);
     }
+}
+
+pub fn progress_bar() -> ProgressBar {
+    ProgressBar::default()
 }

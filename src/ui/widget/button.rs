@@ -6,10 +6,13 @@ use crate::{
     renderer::{Icon, Rect, Renderer, Size, font::Font},
     ui::{
         screen::Transition,
-        widget::{ButtonStyle, Handle, Label, LayoutParams, TextAlign, VerticalAlign, Widget},
+        widget::{
+            ButtonStyle, Handle, Label, LayoutParams, TextAlign, VerticalAlign, Widget, label,
+        },
     },
 };
 
+#[derive(Default)]
 pub struct Button {
     rect: Rect,
     pressed: bool,
@@ -23,29 +26,16 @@ pub struct Button {
     dirty: bool,
 }
 
+#[derive(Default)]
 pub struct ButtonState {
     pub icon: Option<Icon>,
     pub style: ButtonStyle,
 }
 
 impl Button {
-    pub fn new() -> Self {
-        Self {
-            rect: Rect::new(0, 0, 0, 0),
-            pressed: false,
-            label: None,
-            state: Handle::new(ButtonState {
-                icon: None,
-                style: ButtonStyle::default(),
-            }),
-            callback: None,
-            last_version: 0,
-            dirty: true,
-        }
-    }
-
     pub fn text(mut self, text: &str) -> Self {
-        let mut label = Label::new(text)
+        let mut label = label()
+            .text(text)
             .text_align(TextAlign::Center)
             .vertical_align(VerticalAlign::Center);
 
@@ -278,4 +268,8 @@ impl Widget for Button {
             self.render_square_button(renderer);
         }
     }
+}
+
+pub fn button() -> Button {
+    Button::default()
 }

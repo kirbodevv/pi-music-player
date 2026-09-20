@@ -26,6 +26,10 @@ impl Default for LayoutParams {
     }
 }
 
+pub fn layout(width: Dimension, height: Dimension) -> LayoutParams {
+    LayoutParams { width, height }
+}
+
 impl LayoutParams {
     pub fn fixed(width: usize, height: usize) -> Self {
         Self {

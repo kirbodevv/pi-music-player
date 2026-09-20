@@ -105,3 +105,7 @@ impl Widget for ImageWidget {
         self.dirty = true;
     }
 }
+
+pub fn image() -> ImageWidget {
+    ImageWidget::new(Image::default())
+}

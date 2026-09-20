@@ -30,76 +30,53 @@ impl MusicScreen {
     pub fn new() -> Self {
         let button_style = ButtonStyle::default().with_radius(8).with_icon_padding(4);
 
-        /*
-         * HEADER
-         */
-
-        let back = Button::new()
+        let back = button()
             .icon(Icon::ArrowLeft)
             .style(button_style)
             .on_click(|_ctx: &mut Context| Transition::Back);
 
-        let heading = Label::new("Now Playing")
+        let heading = label()
+            .text("Now Playing")
             .font(&FONT_16)
             .color(Color::rgb(240, 240, 245))
             .text_align(TextAlign::Center)
             .vertical_align(VerticalAlign::Center)
             .background(Color::rgb(15, 15, 20));
 
-        let header = Container::default()
+        let header = container()
             .direction(ContainerDirection::Horizontal)
             .spacing(8)
-            .with_child(
-                back,
-                LayoutParams {
-                    width: Dimension::Fixed(32),
-                    height: Dimension::Fixed(32),
-                },
-            )
-            .with_child(
-                heading,
-                LayoutParams {
-                    width: Dimension::Fill,
-                    height: Dimension::Fixed(32),
-                },
-            )
-            .with_child(
-                Container::default(),
-                LayoutParams {
-                    width: Dimension::Fixed(32),
-                    height: Dimension::Fixed(32),
-                },
-            );
+            .with_child(back, layout(Fixed(32), Fixed(32)))
+            .with_child(heading, layout(Fill, Fixed(32)))
+            .with_child(container(), layout(Fixed(32), Fixed(32)));
 
         /*
          * NOW PLAYING
          */
 
-        let track_title = Label::new("Нет трека")
+        let track_title = label()
+            .text("Нет трека")
             .font(&FONT_24)
             .color(Color::WHITE)
             .background(Color::rgb(30, 30, 70));
         let now_playing_title = track_title.handle();
 
-        let track_artist = Label::new("")
+        let track_artist = label()
             .font(&FONT_16)
             .color(Color::rgb(130, 135, 150))
             .background(Color::rgb(30, 30, 70));
         let now_playing_artist = track_artist.handle();
 
-        let cover = ImageWidget::new(Image::default()).radius(8);
+        let cover = image().radius(8);
         let cover_handle = cover.handle();
 
-        let progress_bar = ProgressBar::new().min(0.).max(1.);
+        let progress_bar = progress_bar().min(0.).max(1.);
         let progress_bar_handle = progress_bar.handle();
 
         let cotroll_buttons_style = button_style.with_icon_padding(12);
-        let controll_buttons_layout = LayoutParams {
-            width: Dimension::Fixed(48),
-            height: Dimension::Fixed(48),
-        };
+        let controll_buttons_layout = layout(Fixed(48), Fixed(48));
 
-        let previous = Button::new()
+        let previous = button()
             .icon(Icon::SkipBack)
             .style(cotroll_buttons_style)
             .on_click(|ctx: &mut Context| {
@@ -107,7 +84,7 @@ impl MusicScreen {
                 Transition::None
             });
 
-        let pause_play = Button::new()
+        let pause_play = button()
             .icon(Icon::Play)
             .style(cotroll_buttons_style)
             .on_click(|ctx: &mut Context| {
@@ -117,7 +94,7 @@ impl MusicScreen {
 
         let play_pause_button = pause_play.handle();
 
-        let next = Button::new()
+        let next = button()
             .icon(Icon::SkipForward)
             .style(cotroll_buttons_style)
             .on_click(|ctx: &mut Context| {
@@ -125,60 +102,24 @@ impl MusicScreen {
                 Transition::None
             });
 
-        let controll_panel = Container::new(Rect::default())
+        let controll_panel = container()
             .direction(ContainerDirection::Horizontal)
             .spacing(8)
             .with_child(previous, controll_buttons_layout)
             .with_child(pause_play, controll_buttons_layout)
             .with_child(next, controll_buttons_layout);
 
-        let info = Container::new(Rect::default())
+        let info = container()
             .direction(ContainerDirection::Vertical)
             .spacing(8)
-            .with_child(
-                Container::new(Rect::default()),
-                LayoutParams {
-                    width: Fill,
-                    height: Fill,
-                },
-            )
-            .with_child(
-                track_title,
-                LayoutParams {
-                    width: Fill,
-                    height: Fixed(32),
-                },
-            )
-            .with_child(
-                track_artist,
-                LayoutParams {
-                    width: Fill,
-                    height: Fixed(22),
-                },
-            )
-            .with_child(
-                controll_panel,
-                LayoutParams {
-                    width: Fill,
-                    height: Fixed(60),
-                },
-            )
-            .with_child(
-                progress_bar,
-                LayoutParams {
-                    width: Fill,
-                    height: Fixed(10),
-                },
-            )
-            .with_child(
-                Container::default(),
-                LayoutParams {
-                    width: Fill,
-                    height: Fixed(50),
-                },
-            );
+            .with_child(container(), layout(Fill, Fill))
+            .with_child(track_title, layout(Fill, Fixed(32)))
+            .with_child(track_artist, layout(Fill, Fixed(22)))
+            .with_child(controll_panel, layout(Fill, Fixed(60)))
+            .with_child(progress_bar, layout(Fill, Fixed(10)))
+            .with_child(container(), layout(Fill, Fixed(50)));
 
-        let background = Container::new(Rect::default())
+        let background = container()
             .padding(8)
             .spacing(20)
             .direction(ContainerDirection::Horizontal)
@@ -187,44 +128,17 @@ impl MusicScreen {
                     .with_background(Color::rgb(30, 30, 70))
                     .with_radius(8),
             )
-            .with_child(
-                cover,
-                LayoutParams {
-                    width: Fixed(COVER_SIZE),
-                    height: Fixed(COVER_SIZE),
-                },
-            )
-            .with_child(
-                info,
-                LayoutParams {
-                    width: Fill,
-                    height: Fill,
-                },
-            );
+            .with_child(cover, layout(Fixed(COVER_SIZE), Fixed(COVER_SIZE)))
+            .with_child(info, layout(Fill, Fill));
 
         let background_handle = background.handle();
 
-        /*
-         * ROOT
-         */
-
-        let root = Container::new(Rect::new(0, 0, 480, 320))
+        let root = container()
+            .rect(Rect::new(0, 0, 480, 320))
             .padding(4)
             .spacing(4)
-            .with_child(
-                header,
-                LayoutParams {
-                    width: Fill,
-                    height: Fixed(30),
-                },
-            )
-            .with_child(
-                background,
-                LayoutParams {
-                    width: Fill,
-                    height: Fill,
-                },
-            );
+            .with_child(header, layout(Fill, Fixed(30)))
+            .with_child(background, layout(Fill, Fill));
 
         Self {
             root,

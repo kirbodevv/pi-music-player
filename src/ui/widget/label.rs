@@ -10,6 +10,7 @@ use crate::{
 
 const DEFAULT_FONT: &Font = &FONT_32;
 
+#[derive(Default)]
 pub struct Label {
     rect: Rect,
     text_align: TextAlign,
@@ -54,34 +55,20 @@ pub enum VerticalAlign {
     Bottom,
 }
 
-impl Default for Label {
-    fn default() -> Self {
-        Self {
-            rect: Rect::default(),
-            text_align: TextAlign::default(),
-            vertical_align: VerticalAlign::default(),
-            state: Handle::new(LabelState::default()),
-            last_version: 0,
-            dirty: true,
-        }
-    }
-}
-
 impl Label {
-    pub fn new(text: impl Into<String>) -> Self {
-        Self {
-            state: Handle::new(LabelState {
-                text: text.into(),
-                ..Default::default()
-            }),
-            ..Default::default()
-        }
+    pub fn text(self, text: impl Into<String>) -> Self {
+        self.state.modify(|s| {
+            s.text = text.into();
+        });
+
+        self
     }
 
     pub fn font(self, font: &'static Font) -> Self {
         self.state.modify(|s| {
             s.font = font;
         });
+
         self
     }
 
@@ -211,4 +198,8 @@ impl Widget for Label {
             renderer.draw_text(x, baseline as usize, line, state.font, state.color);
         }
     }
+}
+
+pub fn label() -> Label {
+    Label::default()
 }

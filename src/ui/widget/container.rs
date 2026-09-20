@@ -70,6 +70,12 @@ impl Container {
         self
     }
 
+    pub fn rect(mut self, rect: Rect) -> Self {
+        self.rect = rect;
+        self.layout();
+        self
+    }
+
     pub fn direction(mut self, direction: ContainerDirection) -> Self {
         self.direction = direction;
         self.layout();
@@ -332,4 +338,8 @@ impl Widget for Container {
             child.widget.mark_dirty();
         }
     }
+}
+
+pub fn container() -> Container {
+    Container::default()
 }
