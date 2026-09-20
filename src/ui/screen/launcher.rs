@@ -102,13 +102,13 @@ impl Launcher {
          */
 
         let music = Button::new()
-            .with_text("MUSIC")
-            .with_style(button_style)
+            .text("MUSIC")
+            .style(button_style)
             .on_click(|_ctx: &mut Context| Transition::Open(ScreenId::Music));
 
         let settings = Button::new()
-            .with_text("SETTINGS")
-            .with_style(button_style)
+            .text("SETTINGS")
+            .style(button_style)
             .on_click(|_ctx: &mut Context| Transition::Open(ScreenId::Settings));
 
         let row = Container::new(Rect::default())

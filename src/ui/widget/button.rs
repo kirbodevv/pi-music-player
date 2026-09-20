@@ -44,7 +44,7 @@ impl Button {
         }
     }
 
-    pub fn with_text(mut self, text: &str) -> Self {
+    pub fn text(mut self, text: &str) -> Self {
         let mut label = Label::new(text)
             .with_text_align(TextAlign::Center)
             .with_vertical_align(VerticalAlign::Center);
@@ -54,21 +54,21 @@ impl Button {
         self
     }
 
-    pub fn with_text_font(mut self, font: &'static Font) -> Self {
+    pub fn text_font(mut self, font: &'static Font) -> Self {
         if let Some(label) = self.label {
             self.label = Some(label.with_font(font));
         }
         self
     }
 
-    pub fn with_icon(self, icon: Icon) -> Self {
+    pub fn icon(self, icon: Icon) -> Self {
         self.state.modify(|state| {
             state.icon = Some(icon);
         });
         self
     }
 
-    pub fn with_style(self, style: ButtonStyle) -> Self {
+    pub fn style(self, style: ButtonStyle) -> Self {
         self.state.modify(|state| {
             state.style = style;
         });
@@ -87,7 +87,7 @@ impl Button {
         self
     }
 
-    pub fn with_bounds(mut self, rect: Rect) -> Self {
+    pub fn bounds(mut self, rect: Rect) -> Self {
         self.set_bounds(rect);
         self
     }

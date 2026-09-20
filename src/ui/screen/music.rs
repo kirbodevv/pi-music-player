@@ -35,8 +35,8 @@ impl MusicScreen {
          */
 
         let back = Button::new()
-            .with_icon(Icon::ArrowLeft)
-            .with_style(button_style)
+            .icon(Icon::ArrowLeft)
+            .style(button_style)
             .on_click(|_ctx: &mut Context| Transition::Back);
 
         let heading = Label::new("Now Playing")
@@ -100,16 +100,16 @@ impl MusicScreen {
         };
 
         let previous = Button::new()
-            .with_icon(Icon::SkipBack)
-            .with_style(cotroll_buttons_style)
+            .icon(Icon::SkipBack)
+            .style(cotroll_buttons_style)
             .on_click(|ctx: &mut Context| {
                 ctx.music.previous();
                 Transition::None
             });
 
         let pause_play = Button::new()
-            .with_icon(Icon::Play)
-            .with_style(cotroll_buttons_style)
+            .icon(Icon::Play)
+            .style(cotroll_buttons_style)
             .on_click(|ctx: &mut Context| {
                 ctx.music.play_pause();
                 Transition::None
@@ -118,8 +118,8 @@ impl MusicScreen {
         let play_pause_button = pause_play.handle();
 
         let next = Button::new()
-            .with_icon(Icon::SkipForward)
-            .with_style(cotroll_buttons_style)
+            .icon(Icon::SkipForward)
+            .style(cotroll_buttons_style)
             .on_click(|ctx: &mut Context| {
                 ctx.music.next();
                 Transition::None
