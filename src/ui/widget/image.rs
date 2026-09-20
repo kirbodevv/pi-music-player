@@ -19,6 +19,7 @@ pub struct ImageWidget {
 
 pub struct ImageState {
     pub image: Image,
+    pub radius: usize,
 }
 
 impl ImageWidget {
@@ -30,7 +31,7 @@ impl ImageWidget {
 
         Self {
             rect: Rect::new(0, 0, size.width, size.height),
-            state: Handle::new(ImageState { image }),
+            state: Handle::new(ImageState { image, radius: 0 }),
             last_version: 0,
             dirty: true,
         }
@@ -38,6 +39,11 @@ impl ImageWidget {
 
     pub fn with_bounds(mut self, rect: Rect) -> Self {
         self.rect = rect;
+        self
+    }
+
+    pub fn with_radius(self, radius: usize) -> Self {
+        self.state.modify(|s| s.radius = radius);
         self
     }
 
@@ -70,7 +76,12 @@ impl Widget for ImageWidget {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        renderer.draw_image(self.rect.x, self.rect.y, &self.state.get().image);
+        let state = self.state.get();
+        if state.radius > 0 {
+            renderer.draw_rounded_image(self.rect.x, self.rect.y, &state.image, state.radius);
+        } else {
+            renderer.draw_image(self.rect.x, self.rect.y, &state.image);
+        }
     }
 
     fn update(&mut self, _dt: Duration) {

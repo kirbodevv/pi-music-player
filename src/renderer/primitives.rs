@@ -177,6 +177,53 @@ impl Renderer {
             }
         }
     }
+    pub fn draw_rounded_image(&mut self, x: usize, y: usize, image: &Image, radius: usize) {
+        if image.width == 0 || image.height == 0 {
+            return;
+        }
+
+        let radius = radius.min(image.width / 2).min(image.height / 2);
+
+        let left = x as i32;
+        let top = y as i32;
+        let right = (x + image.width - 1) as i32;
+        let bottom = (y + image.height - 1) as i32;
+
+        let radius = radius as i32;
+
+        for image_y in 0..image.height {
+            let screen_y = y + image_y;
+
+            if screen_y >= HEIGHT {
+                break;
+            }
+
+            for image_x in 0..image.width {
+                let screen_x = x + image_x;
+
+                if screen_x >= WIDTH {
+                    break;
+                }
+
+                if !is_inside_rounded_rect(
+                    screen_x as i32,
+                    screen_y as i32,
+                    left,
+                    top,
+                    right,
+                    bottom,
+                    radius,
+                ) {
+                    continue;
+                }
+
+                let index = image_y * image.width + image_x;
+                let color = image.pixels[index];
+
+                self.pixel_rgb565(screen_x, screen_y, color);
+            }
+        }
+    }
 }
 
 fn is_inside_rounded_rect(
