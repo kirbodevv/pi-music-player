@@ -8,10 +8,10 @@ use crate::event::InputEvent;
 const WIDTH: usize = 480;
 const HEIGHT: usize = 320;
 
-const RAW_X_TOP: i32 = 3500;
-const RAW_X_BOTTOM: i32 = 500;
+const RAW_X_TOP: i32 = 3800;
+const RAW_X_BOTTOM: i32 = 200;
 
-const RAW_Y_LEFT: i32 = 400;
+const RAW_Y_LEFT: i32 = 200;
 const RAW_Y_RIGHT: i32 = 3800;
 
 pub struct Touchscreen {

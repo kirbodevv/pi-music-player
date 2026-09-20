@@ -62,7 +62,7 @@ impl MusicScreen {
                 heading,
                 LayoutParams {
                     width: Dimension::Fill,
-                    height: Dimension::Fixed(30),
+                    height: Dimension::Fixed(32),
                 },
             )
             .with_child(
