@@ -74,7 +74,6 @@ impl MusicScreen {
         let progress_bar_handle = progress_bar.handle();
 
         let cotroll_buttons_style = button_style.with_icon_padding(12);
-        let controll_buttons_layout = layout(Fixed(48), Fixed(48));
 
         let previous = button()
             .icon(Icon::SkipBack)
@@ -102,6 +101,7 @@ impl MusicScreen {
                 Transition::None
             });
 
+        let controll_buttons_layout = layout(Fixed(48), Fixed(48));
         let controll_panel = container()
             .direction(ContainerDirection::Horizontal)
             .spacing(8)
@@ -109,25 +109,32 @@ impl MusicScreen {
             .with_child(pause_play, controll_buttons_layout)
             .with_child(next, controll_buttons_layout);
 
+        let track_info = container()
+            .direction(ContainerDirection::Vertical)
+            .spacing(2)
+            .with_child(track_artist, layout(Fill, Fixed(20)))
+            .with_child(track_title, layout(Fill, Fixed(40)));
+
         let info = container()
             .direction(ContainerDirection::Vertical)
             .spacing(8)
-            .with_child(container(), layout(Fill, Fill))
-            .with_child(track_title, layout(Fill, Fixed(32)))
-            .with_child(track_artist, layout(Fill, Fixed(22)))
-            .with_child(controll_panel, layout(Fill, Fixed(60)))
+            .with_child(track_info, layout(Fill, Fixed(62)))
+            .with_child(container(), layout(Fill, Fixed(98)))
+            .with_child(
+                container()
+                    .direction(ContainerDirection::Horizontal)
+                    .with_child(container(), layout(Fixed(14), Fill))
+                    .with_child(controll_panel, layout(Fill, Fixed(60))),
+                layout(Fill, Fill),
+            )
             .with_child(progress_bar, layout(Fill, Fixed(10)))
-            .with_child(container(), layout(Fill, Fixed(50)));
+            .with_child(container(), layout(Fill, Fixed(6)));
 
         let background = container()
             .padding(8)
-            .spacing(20)
+            .spacing(8)
             .direction(ContainerDirection::Horizontal)
-            .style(
-                ContainerStyle::default()
-                    .with_background(Color::rgb(30, 30, 70))
-                    .with_radius(8),
-            )
+            .style(ContainerStyle::default().with_radius(8))
             .with_child(cover, layout(Fixed(COVER_SIZE), Fixed(COVER_SIZE)))
             .with_child(info, layout(Fill, Fill));
 
