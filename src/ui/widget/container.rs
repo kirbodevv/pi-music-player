@@ -29,6 +29,7 @@ pub struct Container {
     spacing: usize,
     padding: usize,
     state: Handle<ContainerState>,
+    last_version: u64,
     dirty: bool,
 }
 
@@ -46,6 +47,7 @@ impl Default for Container {
             spacing: 0,
             padding: 0,
             state: Handle::default(),
+            last_version: 0,
             dirty: true,
         }
     }
@@ -274,10 +276,6 @@ impl Widget for Container {
     fn render(&self, renderer: &mut Renderer) {
         let bounds = self.bounds();
 
-        // If this container itself is dirty (e.g. just became visible, or
-        // was resized), its whole background needs a fresh coat of paint,
-        // and every child needs to be redrawn on top of it - regardless of
-        // whether the child thinks it's individually dirty.
         let repaint_all = self.dirty;
 
         let style = self.state.get().style;
@@ -301,7 +299,16 @@ impl Widget for Container {
     }
 
     fn update(&mut self, dt: Duration) {
+        let version = self.state.version();
+
+        if version != self.last_version {
+            self.last_version = version;
+            self.dirty = true;
+        }
         for child in &mut self.children {
+            if self.dirty {
+                child.widget.mark_dirty();
+            }
             child.widget.update(dt);
         }
     }
