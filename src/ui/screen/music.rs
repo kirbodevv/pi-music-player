@@ -8,8 +8,8 @@ use crate::{
     ui::{
         screen::{Screen, Transition},
         widget::{
-            Button, ButtonStyle, Container, ContainerDirection, ContainerStyle, Dimension,
-            ImageHandle, ImageWidget, Label, LayoutParams, ProgressBar, ProgressBarHandle,
+            Button, ButtonStyle, Container, ContainerDirection, ContainerStyle, Dimension, Handle,
+            ImageState, ImageWidget, Label, LayoutParams, ProgressBar, ProgressBarHandle,
             TextAlign, VerticalAlign, Widget,
         },
     },
@@ -20,7 +20,7 @@ const COVER_SIZE: usize = 262;
 pub struct MusicScreen {
     root: Container,
     progress_bar: ProgressBarHandle,
-    cover: ImageHandle,
+    cover: Handle<ImageState>,
     displayed_track_path: Option<PathBuf>,
 }
 
@@ -155,7 +155,7 @@ impl Screen for MusicScreen {
                 Some(path) => ctx.artwork.cover_for(path, COVER_SIZE as u32),
                 None => Image::default(),
             };
-            self.cover.set(cover);
+            self.cover.modify(|state| state.image = cover);
         }
         let position = ctx.music.current_position();
         let duration = ctx.music.current_duration();

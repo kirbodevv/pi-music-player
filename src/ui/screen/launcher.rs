@@ -10,8 +10,8 @@ use crate::{
         screen::{Screen, ScreenId, Transition},
         widget::{
             Button, ButtonState, ButtonStyle, Container, ContainerDirection, ContainerStyle,
-            Dimension, Handle, ImageHandle, ImageWidget, Label, LabelState, LayoutParams,
-            TextAlign, Widget,
+            Dimension, Handle, ImageState, ImageWidget, Label, LabelState, LayoutParams, TextAlign,
+            Widget,
         },
     },
 };
@@ -21,7 +21,7 @@ pub struct Launcher {
     now_playing_title: Handle<LabelState>,
     now_playing_artist: Handle<LabelState>,
     play_pause_button: Handle<ButtonState>,
-    cover: ImageHandle,
+    cover: Handle<ImageState>,
     displayed_track_path: Option<PathBuf>,
 }
 
@@ -316,7 +316,7 @@ impl Screen for Launcher {
                     .cover_for(path, crate::artwork::DEFAULT_COVER_SIZE),
                 None => Image::default(),
             };
-            self.cover.set(cover);
+            self.cover.modify(|state| state.image = cover);
         }
         self.set_play_pause_button_icon(ctx.music.state());
     }

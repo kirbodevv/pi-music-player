@@ -6,46 +6,19 @@ use crate::{
     renderer::{Image, Rect, Renderer, Size},
     ui::{
         screen::Transition,
-        widget::{LayoutParams, Widget},
+        widget::{Handle, LayoutParams, Widget},
     },
 };
 
-use std::cell::{Ref, RefCell, RefMut};
-use std::rc::Rc;
-
-struct ImageSlot {
-    image: Image,
-    generation: u64,
-}
-
-#[derive(Clone)]
-pub struct ImageHandle {
-    slot: Rc<RefCell<ImageSlot>>,
-}
-
-impl ImageHandle {
-    pub fn get(&self) -> Ref<'_, Image> {
-        Ref::map(self.slot.borrow(), |slot| &slot.image)
-    }
-
-    pub fn get_mut(&self) -> RefMut<'_, Image> {
-        let mut slot = self.slot.borrow_mut();
-        slot.generation += 1;
-        RefMut::map(slot, |slot| &mut slot.image)
-    }
-
-    pub fn set(&self, image: Image) {
-        let mut slot = self.slot.borrow_mut();
-        slot.image = image;
-        slot.generation += 1;
-    }
-}
-
 pub struct ImageWidget {
-    slot: Rc<RefCell<ImageSlot>>,
     rect: Rect,
-    last_generation: u64,
+    state: Handle<ImageState>,
+    last_version: u64,
     dirty: bool,
+}
+
+pub struct ImageState {
+    pub image: Image,
 }
 
 impl ImageWidget {
@@ -57,11 +30,8 @@ impl ImageWidget {
 
         Self {
             rect: Rect::new(0, 0, size.width, size.height),
-            slot: Rc::new(RefCell::new(ImageSlot {
-                image,
-                generation: 0,
-            })),
-            last_generation: 0,
+            state: Handle::new(ImageState { image }),
+            last_version: 0,
             dirty: true,
         }
     }
@@ -71,10 +41,8 @@ impl ImageWidget {
         self
     }
 
-    pub fn handle(&self) -> ImageHandle {
-        ImageHandle {
-            slot: Rc::clone(&self.slot),
-        }
+    pub fn handle(&self) -> Handle<ImageState> {
+        self.state.clone()
     }
 }
 
@@ -89,12 +57,8 @@ impl Widget for ImageWidget {
     }
 
     fn preferred_size(&self) -> Size {
-        let slot = self.slot.borrow();
-
-        Size {
-            width: slot.image.width,
-            height: slot.image.height,
-        }
+        let (width, height) = self.state.get().image.dimensions();
+        Size { width, height }
     }
 
     fn layout_params(&self) -> LayoutParams {
@@ -106,14 +70,14 @@ impl Widget for ImageWidget {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        renderer.draw_image(self.rect.x, self.rect.y, &self.slot.borrow().image);
+        renderer.draw_image(self.rect.x, self.rect.y, &self.state.get().image);
     }
 
     fn update(&mut self, _dt: Duration) {
-        let generation = self.slot.borrow().generation;
+        let version = self.state.version();
 
-        if generation != self.last_generation {
-            self.last_generation = generation;
+        if version != self.last_version {
+            self.last_version = version;
             self.dirty = true;
         }
     }

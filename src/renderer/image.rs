@@ -49,6 +49,10 @@ impl Image {
 
         Ok(Self::from_rgba8(rgba))
     }
+
+    pub fn dimensions(&self) -> (usize, usize) {
+        (self.width, self.height)
+    }
 }
 
 fn scale_image(image: DynamicImage, scale: Scale) -> DynamicImage {
