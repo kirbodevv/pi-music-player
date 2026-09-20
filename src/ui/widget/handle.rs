@@ -12,6 +12,12 @@ pub struct Handle<T> {
     inner: Rc<RefCell<HandleInner<T>>>,
 }
 
+impl<T: Default> Default for Handle<T> {
+    fn default() -> Self {
+        Self::new(T::default())
+    }
+}
+
 impl<T> Clone for Handle<T> {
     fn clone(&self) -> Self {
         Self {

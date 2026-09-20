@@ -1,18 +1,12 @@
-use std::{cell::RefCell, rc::Rc};
-
 use crate::{
     renderer::{Rect, Renderer, Size, color::Color},
-    ui::widget::Widget,
+    ui::widget::{Handle, Widget},
 };
-
-pub type ProgressBarHandle = Rc<RefCell<ProgressBarState>>;
 
 pub struct ProgressBar {
     rect: Rect,
-    state: ProgressBarHandle,
-    background_color: Color,
-    progress_color: Color,
-    last_value: f64,
+    state: Handle<ProgressBarState>,
+    last_version: u64,
     dirty: bool,
 }
 
@@ -20,6 +14,8 @@ pub struct ProgressBarState {
     min_value: f64,
     max_value: f64,
     value: f64,
+    background_color: Color,
+    progress_color: Color,
 }
 
 impl ProgressBarState {
@@ -40,6 +36,14 @@ impl ProgressBarState {
         self.min_value = min;
         self.max_value = max;
     }
+
+    pub fn set_background_color(&mut self, color: Color) {
+        self.background_color = color;
+    }
+
+    pub fn set_progress_color(&mut self, color: Color) {
+        self.progress_color = color;
+    }
 }
 
 impl Default for ProgressBarState {
@@ -48,6 +52,8 @@ impl Default for ProgressBarState {
             min_value: 0.,
             max_value: 100.,
             value: 0.,
+            background_color: Color::rgb(0, 0, 0),
+            progress_color: Color::rgb(255, 0, 0),
         }
     }
 }
@@ -55,26 +61,24 @@ impl Default for ProgressBarState {
 impl ProgressBar {
     pub fn new() -> Self {
         Self {
-            rect: Rect::new(0, 0, 0, 0),
-            state: Rc::new(RefCell::new(ProgressBarState::default())),
-            background_color: Color::rgb(0, 0, 0),
-            progress_color: Color::rgb(255, 0, 0),
-            last_value: f64::NAN,
+            rect: Rect::default(),
+            state: Handle::default(),
+            last_version: 0,
             dirty: true,
         }
     }
 
     pub fn with_min_value(self, min_value: f64) -> Self {
-        self.state.borrow_mut().min_value = min_value;
+        self.state.modify(|state| state.min_value = min_value);
         self
     }
 
     pub fn with_max_value(self, max_value: f64) -> Self {
-        self.state.borrow_mut().max_value = max_value;
+        self.state.modify(|state| state.max_value = max_value);
         self
     }
 
-    pub fn handle(&self) -> ProgressBarHandle {
+    pub fn handle(&self) -> Handle<ProgressBarState> {
         self.state.clone()
     }
 }
@@ -99,10 +103,10 @@ impl Widget for ProgressBar {
     }
 
     fn update(&mut self, _dt: std::time::Duration) {
-        let value = self.state.borrow().value;
+        let version = self.state.version();
 
-        if value != self.last_value {
-            self.last_value = value;
+        if version != self.last_version {
+            self.last_version = version;
             self.dirty = true;
         }
     }
@@ -125,7 +129,9 @@ impl Widget for ProgressBar {
             min_value,
             max_value,
             value,
-        } = *self.state.borrow();
+            background_color,
+            progress_color,
+        } = *self.state.get();
 
         let progress = (value - min_value) / (max_value - min_value);
         let progress_width = bounds.width as f64 * progress;
@@ -137,7 +143,7 @@ impl Widget for ProgressBar {
             bounds.height,
         );
 
-        renderer.fill_rect(bounds, self.background_color);
-        renderer.fill_rect(progress_bounds, self.progress_color);
+        renderer.fill_rect(bounds, background_color);
+        renderer.fill_rect(progress_bounds, progress_color);
     }
 }

@@ -12,7 +12,7 @@ const COVER_SIZE: usize = 262;
 
 pub struct MusicScreen {
     root: Container,
-    progress_bar: ProgressBarHandle,
+    progress_bar: Handle<ProgressBarState>,
     cover: Handle<ImageState>,
     displayed_track_path: Option<PathBuf>,
 }
@@ -72,8 +72,6 @@ impl MusicScreen {
         let progress_bar = ProgressBar::new().with_min_value(0.).with_max_value(1.);
         let progress_bar_handle = progress_bar.handle();
 
-        progress_bar_handle.borrow_mut().set_value(50.);
-
         let now_playing = Container::new(Rect::default())
             .with_padding(8)
             .with_spacing(20)
@@ -129,9 +127,8 @@ impl MusicScreen {
     }
 
     fn set_progress_bar(&mut self, position: Duration, duration: Duration) {
-        let mut progress_bar = self.progress_bar.borrow_mut();
-        let value = position.as_secs_f64() / duration.as_secs_f64();
-        progress_bar.set_value(value);
+        let value = position.div_duration_f64(duration);
+        self.progress_bar.modify(|state| state.set_value(value));
     }
 }
 
