@@ -90,7 +90,7 @@ impl MusicScreen {
         let cover = ImageWidget::new(Image::default()).radius(8);
         let cover_handle = cover.handle();
 
-        let progress_bar = ProgressBar::new().with_min_value(0.).with_max_value(1.);
+        let progress_bar = ProgressBar::new().min(0.).max(1.);
         let progress_bar_handle = progress_bar.handle();
 
         let cotroll_buttons_style = button_style.with_icon_padding(12);

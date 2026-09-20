@@ -68,12 +68,12 @@ impl ProgressBar {
         }
     }
 
-    pub fn with_min_value(self, min_value: f64) -> Self {
+    pub fn min(self, min_value: f64) -> Self {
         self.state.modify(|state| state.min_value = min_value);
         self
     }
 
-    pub fn with_max_value(self, max_value: f64) -> Self {
+    pub fn max(self, max_value: f64) -> Self {
         self.state.modify(|state| state.max_value = max_value);
         self
     }
