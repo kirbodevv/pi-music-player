@@ -4,7 +4,6 @@ use std::time::Duration;
 use crate::{
     context::Context,
     event::InputEvent,
-    music::player::PlayerState,
     renderer::{FONT_16, Icon, Image, Rect, Renderer, color::Color},
     ui::{
         screen::{Screen, Transition},
@@ -20,9 +19,6 @@ const COVER_SIZE: usize = 262;
 
 pub struct MusicScreen {
     root: Container,
-    /*title: LabelHandle,
-    artist: LabelHandle,
-    status: LabelHandle,*/
     progress_bar: ProgressBarHandle,
     cover: ImageHandle,
     displayed_track_path: Option<PathBuf>,
@@ -39,7 +35,7 @@ impl MusicScreen {
         let back = Button::new()
             .with_icon(Icon::ArrowLeft, 4)
             .with_style(button_style)
-            .on_click(Box::new(|_ctx: &mut Context| Transition::Back));
+            .on_click(|_ctx: &mut Context| Transition::Back);
 
         let heading = Label::new("Now Playing")
             .with_font(&FONT_16)
@@ -133,9 +129,6 @@ impl MusicScreen {
 
         Self {
             root,
-            /*title: title_handle,
-            artist: artist_handle,
-            status: status_handle,*/
             progress_bar: progress_bar_handle,
             cover: cover_handle,
             displayed_track_path: None,
@@ -146,33 +139,6 @@ impl MusicScreen {
         let mut progress_bar = self.progress_bar.borrow_mut();
         let value = position.as_secs_f64() / duration.as_secs_f64();
         progress_bar.set_value(value);
-    }
-
-    /*fn set_track_labels(&mut self, track: Option<&Track>) {
-        let mut title = self.title.borrow_mut();
-        let mut artist = self.artist.borrow_mut();
-
-        match track {
-            Some(track) => {
-                *title = track.title.clone();
-                *artist = track.artist.clone();
-            }
-
-            None => {
-                *title = "Нет трека".to_string();
-                *artist = String::new();
-            }
-        }
-    }*/
-
-    fn set_status_label(&mut self, state: PlayerState) {
-        let text = match state {
-            PlayerState::Playing => "Playing",
-            PlayerState::Paused => "Paused",
-            PlayerState::Stopped => "Stopped",
-        };
-
-        //*self.status.borrow_mut() = text.to_string();
     }
 }
 
@@ -185,9 +151,6 @@ impl Screen for MusicScreen {
         if path != self.displayed_track_path {
             self.displayed_track_path = path.clone();
 
-            let track = ctx.music.current_track().cloned();
-            //self.set_track_labels(track.as_ref());
-
             let cover = match &path {
                 Some(path) => ctx.artwork.cover_for(path, COVER_SIZE as u32),
                 None => Image::default(),
@@ -198,7 +161,6 @@ impl Screen for MusicScreen {
         let duration = ctx.music.current_duration();
 
         self.set_progress_bar(position, duration);
-        self.set_status_label(ctx.music.state());
     }
 
     fn render(&mut self, renderer: &mut Renderer) {

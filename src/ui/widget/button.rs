@@ -1,3 +1,5 @@
+use std::{cell::RefCell, rc::Rc, time::Duration};
+
 use crate::{
     context::Context,
     event::InputEvent,
@@ -14,12 +16,15 @@ enum ButtonState {
     Pressed,
 }
 
+pub type ButtonIconHandle = Rc<RefCell<Option<Icon>>>;
+
 pub struct Button {
     rect: Rect,
     state: ButtonState,
 
     label: Option<Label>,
-    icon: Option<Icon>,
+    icon: ButtonIconHandle,
+    last_icon: Option<Icon>,
     icon_padding: usize,
 
     callback: Option<Box<dyn Fn(&mut Context) -> Transition>>,
@@ -34,7 +39,8 @@ impl Button {
             rect: Rect::new(0, 0, 0, 0),
             state: ButtonState::Normal,
             label: None,
-            icon: None,
+            icon: Rc::new(RefCell::new(None)),
+            last_icon: None,
             icon_padding: 0,
             callback: None,
             style: ButtonStyle::default(),
@@ -60,7 +66,7 @@ impl Button {
     }
 
     pub fn with_icon(mut self, icon: Icon, padding: usize) -> Self {
-        self.icon = Some(icon);
+        *self.icon.borrow_mut() = Some(icon);
         self.icon_padding = padding;
         self
     }
@@ -77,8 +83,8 @@ impl Button {
             && y < self.rect.y + self.rect.height
     }
 
-    pub fn on_click(mut self, callback: Box<dyn Fn(&mut Context) -> Transition>) -> Self {
-        self.callback = Some(callback);
+    pub fn on_click(mut self, callback: impl Fn(&mut Context) -> Transition + 'static) -> Self {
+        self.callback = Some(Box::new(callback));
         self
     }
 
@@ -119,7 +125,7 @@ impl Button {
             label.render(renderer);
         }
 
-        if let Some(icon) = &self.icon {
+        if let Some(icon) = self.icon.borrow().as_ref() {
             renderer.draw_icon(
                 *icon,
                 self.rect.pad(self.icon_padding),
@@ -211,9 +217,25 @@ impl Button {
             label.render(renderer);
         }
     }
+
+    pub fn icon_handle(&self) -> ButtonIconHandle {
+        self.icon.clone()
+    }
 }
 
 impl Widget for Button {
+    fn update(&mut self, _dt: Duration) {
+        let changed = {
+            let icon = self.icon.borrow();
+            *icon != self.last_icon
+        };
+
+        if changed {
+            self.last_icon = self.icon.borrow().clone();
+            self.dirty = true;
+        }
+    }
+
     fn layout_params(&self) -> LayoutParams {
         LayoutParams::default()
     }

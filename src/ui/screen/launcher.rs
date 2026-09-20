@@ -4,13 +4,14 @@ use std::time::Duration;
 use crate::{
     context::Context,
     event::InputEvent,
-    music::track::Track,
+    music::{player::PlayerState, track::Track},
     renderer::{FONT_16, FONT_24, Icon, Image, Rect, Renderer, color::Color},
     ui::{
         screen::{Screen, ScreenId, Transition},
         widget::{
-            Button, ButtonStyle, Container, ContainerDirection, ContainerStyle, Dimension,
-            ImageHandle, ImageWidget, Label, LabelHandle, LayoutParams, TextAlign, Widget,
+            Button, ButtonIconHandle, ButtonStyle, Container, ContainerDirection, ContainerStyle,
+            Dimension, ImageHandle, ImageWidget, Label, LabelHandle, LayoutParams, TextAlign,
+            Widget,
         },
     },
 };
@@ -20,6 +21,7 @@ pub struct Launcher {
     now_playing_title: LabelHandle,
     now_playing_artist: LabelHandle,
     cover: ImageHandle,
+    play_pause_button_icon: ButtonIconHandle,
     displayed_track_path: Option<PathBuf>,
 }
 
@@ -73,26 +75,28 @@ impl Launcher {
         let previous = Button::new()
             .with_icon(Icon::SkipBack, 18)
             .with_style(button_style)
-            .on_click(Box::new(|ctx: &mut Context| {
+            .on_click(|ctx: &mut Context| {
                 ctx.music.previous();
                 Transition::None
-            }));
+            });
 
         let pause_play = Button::new()
             .with_icon(Icon::Play, 18)
             .with_style(button_style)
-            .on_click(Box::new(|ctx: &mut Context| {
+            .on_click(|ctx: &mut Context| {
                 ctx.music.play_pause();
                 Transition::None
-            }));
+            });
+
+        let play_pause_button_icon = pause_play.icon_handle();
 
         let next = Button::new()
             .with_icon(Icon::SkipForward, 18)
             .with_style(button_style)
-            .on_click(Box::new(|ctx: &mut Context| {
+            .on_click(|ctx: &mut Context| {
                 ctx.music.next();
                 Transition::None
-            }));
+            });
 
         let controll_panel = Container::new(Rect::default())
             .with_direction(ContainerDirection::Horizontal)
@@ -199,16 +203,12 @@ impl Launcher {
         let music = Button::new()
             .with_text("MUSIC")
             .with_style(button_style)
-            .on_click(Box::new(|_ctx: &mut Context| {
-                Transition::Open(ScreenId::Music)
-            }));
+            .on_click(|_ctx: &mut Context| Transition::Open(ScreenId::Music));
 
         let settings = Button::new()
             .with_text("SETTINGS")
             .with_style(button_style)
-            .on_click(Box::new(|_ctx: &mut Context| {
-                Transition::Open(ScreenId::Settings)
-            }));
+            .on_click(|_ctx: &mut Context| Transition::Open(ScreenId::Settings));
 
         let row = Container::new(Rect::default())
             .with_direction(ContainerDirection::Horizontal)
@@ -259,6 +259,7 @@ impl Launcher {
             now_playing_title,
             now_playing_artist,
             cover: cover_handle,
+            play_pause_button_icon,
             displayed_track_path: None,
         }
     }
@@ -278,6 +279,16 @@ impl Launcher {
                 *artist = String::new();
             }
         }
+    }
+
+    fn set_play_pause_button_icon(&mut self, state: PlayerState) {
+        let icon = match state {
+            PlayerState::Playing => Icon::Pause,
+            PlayerState::Paused => Icon::Play,
+            PlayerState::Stopped => Icon::Play,
+        };
+
+        *self.play_pause_button_icon.borrow_mut() = Some(icon);
     }
 }
 
@@ -301,6 +312,7 @@ impl Screen for Launcher {
             };
             self.cover.set(cover);
         }
+        self.set_play_pause_button_icon(ctx.music.state());
     }
 
     fn render(&mut self, renderer: &mut Renderer) {
