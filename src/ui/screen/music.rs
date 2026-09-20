@@ -87,7 +87,7 @@ impl MusicScreen {
             .with_background(Color::rgb(30, 30, 70));
         let now_playing_artist = track_artist.handle();
 
-        let cover = ImageWidget::new(Image::default()).with_radius(8);
+        let cover = ImageWidget::new(Image::default()).radius(8);
         let cover_handle = cover.handle();
 
         let progress_bar = ProgressBar::new().with_min_value(0.).with_max_value(1.);

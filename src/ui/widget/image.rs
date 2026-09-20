@@ -37,12 +37,12 @@ impl ImageWidget {
         }
     }
 
-    pub fn with_bounds(mut self, rect: Rect) -> Self {
+    pub fn bounds(mut self, rect: Rect) -> Self {
         self.rect = rect;
         self
     }
 
-    pub fn with_radius(self, radius: usize) -> Self {
+    pub fn radius(self, radius: usize) -> Self {
         self.state.modify(|s| s.radius = radius);
         self
     }
