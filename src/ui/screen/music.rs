@@ -47,8 +47,8 @@ impl MusicScreen {
             .with_background(Color::rgb(15, 15, 20));
 
         let header = Container::default()
-            .with_direction(ContainerDirection::Horizontal)
-            .with_spacing(8)
+            .direction(ContainerDirection::Horizontal)
+            .spacing(8)
             .with_child(
                 back,
                 LayoutParams {
@@ -126,15 +126,15 @@ impl MusicScreen {
             });
 
         let controll_panel = Container::new(Rect::default())
-            .with_direction(ContainerDirection::Horizontal)
-            .with_spacing(8)
+            .direction(ContainerDirection::Horizontal)
+            .spacing(8)
             .with_child(previous, controll_buttons_layout)
             .with_child(pause_play, controll_buttons_layout)
             .with_child(next, controll_buttons_layout);
 
         let info = Container::new(Rect::default())
-            .with_direction(ContainerDirection::Vertical)
-            .with_spacing(8)
+            .direction(ContainerDirection::Vertical)
+            .spacing(8)
             .with_child(
                 Container::new(Rect::default()),
                 LayoutParams {
@@ -179,10 +179,10 @@ impl MusicScreen {
             );
 
         let background = Container::new(Rect::default())
-            .with_padding(8)
-            .with_spacing(20)
-            .with_direction(ContainerDirection::Horizontal)
-            .with_style(
+            .padding(8)
+            .spacing(20)
+            .direction(ContainerDirection::Horizontal)
+            .style(
                 ContainerStyle::default()
                     .with_background(Color::rgb(30, 30, 70))
                     .with_radius(8),
@@ -209,8 +209,8 @@ impl MusicScreen {
          */
 
         let root = Container::new(Rect::new(0, 0, 480, 320))
-            .with_padding(4)
-            .with_spacing(4)
+            .padding(4)
+            .spacing(4)
             .with_child(
                 header,
                 LayoutParams {

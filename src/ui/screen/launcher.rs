@@ -19,8 +19,8 @@ impl Launcher {
         let button_style = ButtonStyle::default().with_radius(8).with_icon_padding(18);
 
         let mut root = Container::new(Rect::new(0, 0, 480, 320))
-            .with_padding(16)
-            .with_spacing(10);
+            .padding(16)
+            .spacing(10);
 
         /*
          * HEADER
@@ -40,8 +40,8 @@ impl Launcher {
             .with_background(SCREEN_BACKGROUND);
 
         let header = Container::new(Rect::default())
-            .with_direction(ContainerDirection::Horizontal)
-            .with_spacing(8)
+            .direction(ContainerDirection::Horizontal)
+            .spacing(8)
             .with_child(
                 title,
                 LayoutParams {
@@ -63,10 +63,10 @@ impl Launcher {
         let cover_handle = cover.handle();
 
         let now_playing = Container::new(Rect::default())
-            .with_padding(12)
-            .with_spacing(14)
-            .with_direction(ContainerDirection::Horizontal)
-            .with_style(
+            .padding(12)
+            .spacing(14)
+            .direction(ContainerDirection::Horizontal)
+            .style(
                 ContainerStyle::default()
                     .with_background(Color::rgb(30, 30, 70))
                     .with_radius(8),
@@ -80,8 +80,8 @@ impl Launcher {
             )
             .with_child(
                 Container::new(Rect::default())
-                    .with_direction(ContainerDirection::Vertical)
-                    .with_spacing(4)
+                    .direction(ContainerDirection::Vertical)
+                    .spacing(4)
                     .with_child(
                         Label::new("СЕЙЧАС ИГРАЕТ")
                             .with_font(&FONT_16)
@@ -112,8 +112,8 @@ impl Launcher {
             .on_click(|_ctx: &mut Context| Transition::Open(ScreenId::Settings));
 
         let row = Container::new(Rect::default())
-            .with_direction(ContainerDirection::Horizontal)
-            .with_spacing(10)
+            .direction(ContainerDirection::Horizontal)
+            .spacing(10)
             .with_child(
                 music,
                 LayoutParams {

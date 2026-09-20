@@ -70,25 +70,25 @@ impl Container {
         self
     }
 
-    pub fn with_direction(mut self, direction: ContainerDirection) -> Self {
+    pub fn direction(mut self, direction: ContainerDirection) -> Self {
         self.direction = direction;
         self.layout();
         self
     }
 
-    pub fn with_spacing(mut self, spacing: usize) -> Self {
+    pub fn spacing(mut self, spacing: usize) -> Self {
         self.spacing = spacing;
         self.layout();
         self
     }
 
-    pub fn with_padding(mut self, padding: usize) -> Self {
+    pub fn padding(mut self, padding: usize) -> Self {
         self.padding = padding;
         self.layout();
         self
     }
 
-    pub fn with_style(self, style: ContainerStyle) -> Self {
+    pub fn style(self, style: ContainerStyle) -> Self {
         self.state.modify(|state| state.style = style);
         self
     }
