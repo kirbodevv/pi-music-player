@@ -9,7 +9,7 @@ use crate::{
     ui::{
         screen::{Screen, ScreenId, Transition},
         widget::{
-            Button, ButtonIconHandle, ButtonStyle, Container, ContainerDirection, ContainerStyle,
+            Button, ButtonState, ButtonStyle, Container, ContainerDirection, ContainerStyle,
             Dimension, Handle, ImageHandle, ImageWidget, Label, LabelState, LayoutParams,
             TextAlign, Widget,
         },
@@ -20,14 +20,14 @@ pub struct Launcher {
     root: Container,
     now_playing_title: Handle<LabelState>,
     now_playing_artist: Handle<LabelState>,
+    play_pause_button: Handle<ButtonState>,
     cover: ImageHandle,
-    play_pause_button_icon: ButtonIconHandle,
     displayed_track_path: Option<PathBuf>,
 }
 
 impl Launcher {
     pub fn new() -> Self {
-        let button_style = ButtonStyle::default().with_radius(8);
+        let button_style = ButtonStyle::default().with_radius(8).with_icon_padding(18);
 
         let mut root = Container::new(Rect::new(0, 0, 480, 320))
             .with_padding(16)
@@ -73,7 +73,7 @@ impl Launcher {
          */
 
         let previous = Button::new()
-            .with_icon(Icon::SkipBack, 18)
+            .with_icon(Icon::SkipBack)
             .with_style(button_style)
             .on_click(|ctx: &mut Context| {
                 ctx.music.previous();
@@ -81,17 +81,17 @@ impl Launcher {
             });
 
         let pause_play = Button::new()
-            .with_icon(Icon::Play, 18)
+            .with_icon(Icon::Play)
             .with_style(button_style)
             .on_click(|ctx: &mut Context| {
                 ctx.music.play_pause();
                 Transition::None
             });
 
-        let play_pause_button_icon = pause_play.icon_handle();
+        let play_pause_button = pause_play.handle();
 
         let next = Button::new()
-            .with_icon(Icon::SkipForward, 18)
+            .with_icon(Icon::SkipForward)
             .with_style(button_style)
             .on_click(|ctx: &mut Context| {
                 ctx.music.next();
@@ -259,7 +259,7 @@ impl Launcher {
             now_playing_title,
             now_playing_artist,
             cover: cover_handle,
-            play_pause_button_icon,
+            play_pause_button,
             displayed_track_path: None,
         }
     }
@@ -286,14 +286,15 @@ impl Launcher {
         }
     }
 
-    fn set_play_pause_button_icon(&mut self, state: PlayerState) {
+    fn set_play_pause_button_icon(&self, state: PlayerState) {
         let icon = match state {
             PlayerState::Playing => Icon::Pause,
             PlayerState::Paused => Icon::Play,
             PlayerState::Stopped => Icon::Play,
         };
 
-        *self.play_pause_button_icon.borrow_mut() = Some(icon);
+        self.play_pause_button
+            .modify(|state| state.icon = Some(icon));
     }
 }
 

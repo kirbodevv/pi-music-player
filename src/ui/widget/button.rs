@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::time::Duration;
 
 use crate::{
     context::Context,
@@ -6,25 +6,26 @@ use crate::{
     renderer::{Icon, Rect, Renderer, Size, font::Font},
     ui::{
         screen::Transition,
-        widget::{ButtonStyle, Label, LayoutParams, TextAlign, VerticalAlign, Widget},
+        widget::{ButtonStyle, Handle, Label, LayoutParams, TextAlign, VerticalAlign, Widget},
     },
 };
-
-pub type ButtonIconHandle = Rc<RefCell<Option<Icon>>>;
 
 pub struct Button {
     rect: Rect,
     pressed: bool,
 
     label: Option<Label>,
-    icon: ButtonIconHandle,
-    last_icon: Option<Icon>,
-    icon_padding: usize,
+    state: Handle<ButtonState>,
 
     callback: Option<Box<dyn Fn(&mut Context) -> Transition>>,
 
-    style: ButtonStyle,
+    last_version: u64,
     dirty: bool,
+}
+
+pub struct ButtonState {
+    pub icon: Option<Icon>,
+    pub style: ButtonStyle,
 }
 
 impl Button {
@@ -33,11 +34,12 @@ impl Button {
             rect: Rect::new(0, 0, 0, 0),
             pressed: false,
             label: None,
-            icon: Rc::new(RefCell::new(None)),
-            last_icon: None,
-            icon_padding: 0,
+            state: Handle::new(ButtonState {
+                icon: None,
+                style: ButtonStyle::default(),
+            }),
             callback: None,
-            style: ButtonStyle::default(),
+            last_version: 0,
             dirty: true,
         }
     }
@@ -59,14 +61,17 @@ impl Button {
         self
     }
 
-    pub fn with_icon(mut self, icon: Icon, padding: usize) -> Self {
-        *self.icon.borrow_mut() = Some(icon);
-        self.icon_padding = padding;
+    pub fn with_icon(self, icon: Icon) -> Self {
+        self.state.modify(|state| {
+            state.icon = Some(icon);
+        });
         self
     }
 
-    pub fn with_style(mut self, style: ButtonStyle) -> Self {
-        self.style = style;
+    pub fn with_style(self, style: ButtonStyle) -> Self {
+        self.state.modify(|state| {
+            state.style = style;
+        });
         self
     }
 
@@ -96,19 +101,23 @@ impl Button {
     }
 
     fn render_rounded_button(&self, renderer: &mut Renderer) {
+        let state = self.state.get();
+        let style = state.style;
+        let icon = state.icon;
+
         let (background, light, dark) = match self.pressed {
-            false => (self.style.background, self.style.light, self.style.dark),
+            false => (style.background, style.light, style.dark),
             true => (
-                self.style.pressed_background,
-                self.style.pressed_light,
-                self.style.pressed_dark,
+                style.pressed_background,
+                style.pressed_light,
+                style.pressed_dark,
             ),
         };
 
         renderer.draw_rounded_rect_3d(
             self.rect,
-            self.style.radius,
-            self.style.border_width,
+            style.radius,
+            style.border_width,
             background,
             light,
             dark,
@@ -118,22 +127,24 @@ impl Button {
             label.render(renderer);
         }
 
-        if let Some(icon) = self.icon.borrow().as_ref() {
+        if let Some(icon) = icon {
             renderer.draw_icon(
-                *icon,
-                self.rect.pad(self.icon_padding),
-                self.style.background.invert(),
+                icon,
+                self.rect.pad(style.icon_padding),
+                style.background.invert(),
             );
         }
     }
 
     fn render_square_button(&self, renderer: &mut Renderer) {
+        let style = self.state.get().style;
+
         let (background, light, dark) = match self.pressed {
-            false => (self.style.background, self.style.light, self.style.dark),
+            false => (style.background, style.light, style.dark),
             true => (
-                self.style.pressed_background,
-                self.style.pressed_light,
-                self.style.pressed_dark,
+                style.pressed_background,
+                style.pressed_light,
+                style.pressed_dark,
             ),
         };
 
@@ -174,20 +185,17 @@ impl Button {
         }
     }
 
-    pub fn icon_handle(&self) -> ButtonIconHandle {
-        self.icon.clone()
+    pub fn handle(&self) -> Handle<ButtonState> {
+        self.state.clone()
     }
 }
 
 impl Widget for Button {
     fn update(&mut self, _dt: Duration) {
-        let changed = {
-            let icon = self.icon.borrow();
-            *icon != self.last_icon
-        };
+        let version = self.state.version();
 
-        if changed {
-            self.last_icon = self.icon.borrow().clone();
+        if version != self.last_version {
+            self.last_version = version;
             self.dirty = true;
         }
     }
@@ -263,7 +271,8 @@ impl Widget for Button {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        if self.style.radius > 0 {
+        let state = self.state.get();
+        if state.style.radius > 0 {
             self.render_rounded_button(renderer);
         } else {
             self.render_square_button(renderer);

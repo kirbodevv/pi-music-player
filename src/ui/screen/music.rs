@@ -26,14 +26,14 @@ pub struct MusicScreen {
 
 impl MusicScreen {
     pub fn new() -> Self {
-        let button_style = ButtonStyle::default().with_radius(8);
+        let button_style = ButtonStyle::default().with_radius(8).with_icon_padding(4);
 
         /*
          * HEADER
          */
 
         let back = Button::new()
-            .with_icon(Icon::ArrowLeft, 4)
+            .with_icon(Icon::ArrowLeft)
             .with_style(button_style)
             .on_click(|_ctx: &mut Context| Transition::Back);
 

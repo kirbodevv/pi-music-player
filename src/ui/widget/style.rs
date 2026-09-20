@@ -10,11 +10,17 @@ pub struct ButtonStyle {
     pub pressed_dark: Color,
     pub radius: usize,
     pub border_width: usize,
+    pub icon_padding: usize,
 }
 
 impl ButtonStyle {
     pub fn with_radius(mut self, radius: usize) -> Self {
         self.radius = radius;
+        self
+    }
+
+    pub fn with_icon_padding(mut self, padding: usize) -> Self {
+        self.icon_padding = padding;
         self
     }
 }
@@ -32,6 +38,7 @@ impl Default for ButtonStyle {
 
             radius: 0,
             border_width: 2,
+            icon_padding: 0,
         }
     }
 }
