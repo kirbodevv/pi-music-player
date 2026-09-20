@@ -12,6 +12,8 @@ pub struct ProgressBar {
     state: ProgressBarHandle,
     background_color: Color,
     progress_color: Color,
+    last_value: f64,
+    dirty: bool,
 }
 
 pub struct ProgressBarState {
@@ -57,6 +59,8 @@ impl ProgressBar {
             state: Rc::new(RefCell::new(ProgressBarState::default())),
             background_color: Color::rgb(0, 0, 0),
             progress_color: Color::rgb(255, 0, 0),
+            last_value: f64::NAN,
+            dirty: true,
         }
     }
 
@@ -91,6 +95,28 @@ impl Widget for ProgressBar {
 
     fn set_bounds(&mut self, rect: Rect) {
         self.rect = rect;
+        self.dirty = true;
+    }
+
+    fn update(&mut self, _dt: std::time::Duration) {
+        let value = self.state.borrow().value;
+
+        if value != self.last_value {
+            self.last_value = value;
+            self.dirty = true;
+        }
+    }
+
+    fn is_dirty(&self) -> bool {
+        self.dirty
+    }
+
+    fn clear_dirty(&mut self) {
+        self.dirty = false;
+    }
+
+    fn mark_dirty(&mut self) {
+        self.dirty = true;
     }
 
     fn render(&self, renderer: &mut Renderer) {

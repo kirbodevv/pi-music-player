@@ -13,28 +13,39 @@ use crate::{
 use std::cell::{Ref, RefCell, RefMut};
 use std::rc::Rc;
 
+struct ImageSlot {
+    image: Image,
+    generation: u64,
+}
+
 #[derive(Clone)]
 pub struct ImageHandle {
-    image: Rc<RefCell<Image>>,
+    slot: Rc<RefCell<ImageSlot>>,
 }
 
 impl ImageHandle {
     pub fn get(&self) -> Ref<'_, Image> {
-        self.image.borrow()
+        Ref::map(self.slot.borrow(), |slot| &slot.image)
     }
 
     pub fn get_mut(&self) -> RefMut<'_, Image> {
-        self.image.borrow_mut()
+        let mut slot = self.slot.borrow_mut();
+        slot.generation += 1;
+        RefMut::map(slot, |slot| &mut slot.image)
     }
 
     pub fn set(&self, image: Image) {
-        *self.image.borrow_mut() = image;
+        let mut slot = self.slot.borrow_mut();
+        slot.image = image;
+        slot.generation += 1;
     }
 }
 
 pub struct ImageWidget {
-    image: Rc<RefCell<Image>>,
+    slot: Rc<RefCell<ImageSlot>>,
     rect: Rect,
+    last_generation: u64,
+    dirty: bool,
 }
 
 impl ImageWidget {
@@ -46,7 +57,12 @@ impl ImageWidget {
 
         Self {
             rect: Rect::new(0, 0, size.width, size.height),
-            image: Rc::new(RefCell::new(image)),
+            slot: Rc::new(RefCell::new(ImageSlot {
+                image,
+                generation: 0,
+            })),
+            last_generation: 0,
+            dirty: true,
         }
     }
 
@@ -57,7 +73,7 @@ impl ImageWidget {
 
     pub fn handle(&self) -> ImageHandle {
         ImageHandle {
-            image: Rc::clone(&self.image),
+            slot: Rc::clone(&self.slot),
         }
     }
 }
@@ -69,12 +85,15 @@ impl Widget for ImageWidget {
 
     fn set_bounds(&mut self, rect: Rect) {
         self.rect = rect;
+        self.dirty = true;
     }
 
     fn preferred_size(&self) -> Size {
+        let slot = self.slot.borrow();
+
         Size {
-            width: self.image.borrow().width,
-            height: self.image.borrow().height,
+            width: slot.image.width,
+            height: slot.image.height,
         }
     }
 
@@ -87,8 +106,27 @@ impl Widget for ImageWidget {
     }
 
     fn render(&self, renderer: &mut Renderer) {
-        renderer.draw_image(self.rect.x, self.rect.y, &self.image.borrow());
+        renderer.draw_image(self.rect.x, self.rect.y, &self.slot.borrow().image);
     }
 
-    fn update(&mut self, _dt: Duration) {}
+    fn update(&mut self, _dt: Duration) {
+        let generation = self.slot.borrow().generation;
+
+        if generation != self.last_generation {
+            self.last_generation = generation;
+            self.dirty = true;
+        }
+    }
+
+    fn is_dirty(&self) -> bool {
+        self.dirty
+    }
+
+    fn clear_dirty(&mut self) {
+        self.dirty = false;
+    }
+
+    fn mark_dirty(&mut self) {
+        self.dirty = true;
+    }
 }

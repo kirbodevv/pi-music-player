@@ -22,7 +22,6 @@ pub struct Child {
     layout: LayoutParams,
 }
 
-#[derive(Default)]
 pub struct Container {
     rect: Rect,
     children: Vec<Child>,
@@ -30,17 +29,28 @@ pub struct Container {
     spacing: usize,
     padding: usize,
     style: ContainerStyle,
+    dirty: bool,
+}
+
+impl Default for Container {
+    fn default() -> Self {
+        Self {
+            rect: Rect::default(),
+            children: Vec::new(),
+            direction: ContainerDirection::default(),
+            spacing: 0,
+            padding: 0,
+            style: ContainerStyle::default(),
+            dirty: true,
+        }
+    }
 }
 
 impl Container {
     pub fn new(rect: Rect) -> Self {
         Self {
             rect,
-            children: Vec::new(),
-            direction: ContainerDirection::Vertical,
-            spacing: 0,
-            padding: 0,
-            style: ContainerStyle::default(),
+            ..Self::default()
         }
     }
 
@@ -236,6 +246,7 @@ impl Widget for Container {
     fn set_bounds(&mut self, rect: Rect) {
         self.rect = rect;
         self.layout();
+        self.dirty = true;
     }
 
     fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition {
@@ -253,16 +264,27 @@ impl Widget for Container {
     fn render(&self, renderer: &mut Renderer) {
         let bounds = self.bounds();
 
+        // If this container itself is dirty (e.g. just became visible, or
+        // was resized), its whole background needs a fresh coat of paint,
+        // and every child needs to be redrawn on top of it - regardless of
+        // whether the child thinks it's individually dirty.
+        let repaint_all = self.dirty;
+
         renderer.with_clip(bounds, |renderer| {
-            if let Some(background) = self.style.background {
-                if self.style.radius > 0 {
-                    renderer.fill_rounded_rect(bounds, self.style.radius, background);
-                } else {
-                    renderer.fill_rect(bounds, background);
+            if repaint_all {
+                if let Some(background) = self.style.background {
+                    if self.style.radius > 0 {
+                        renderer.fill_rounded_rect(bounds, self.style.radius, background);
+                    } else {
+                        renderer.fill_rect(bounds, background);
+                    }
                 }
             }
+
             for child in &self.children {
-                child.widget.render(renderer);
+                if repaint_all || child.widget.is_dirty() {
+                    child.widget.render(renderer);
+                }
             }
         });
     }
@@ -270,6 +292,26 @@ impl Widget for Container {
     fn update(&mut self, dt: Duration) {
         for child in &mut self.children {
             child.widget.update(dt);
+        }
+    }
+
+    fn is_dirty(&self) -> bool {
+        self.dirty || self.children.iter().any(|child| child.widget.is_dirty())
+    }
+
+    fn clear_dirty(&mut self) {
+        self.dirty = false;
+
+        for child in &mut self.children {
+            child.widget.clear_dirty();
+        }
+    }
+
+    fn mark_dirty(&mut self) {
+        self.dirty = true;
+
+        for child in &mut self.children {
+            child.widget.mark_dirty();
         }
     }
 }

@@ -45,7 +45,8 @@ impl MusicScreen {
             .with_font(&FONT_16)
             .with_color(Color::rgb(240, 240, 245))
             .with_text_align(TextAlign::Center)
-            .with_vertical_align(VerticalAlign::Center);
+            .with_vertical_align(VerticalAlign::Center)
+            .with_background(Color::rgb(15, 15, 20));
 
         let header = Container::default()
             .with_direction(ContainerDirection::Horizontal)
@@ -206,5 +207,13 @@ impl Screen for MusicScreen {
 
     fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition {
         self.root.handle_input(event, ctx)
+    }
+
+    fn mark_dirty(&mut self) {
+        self.root.mark_dirty();
+    }
+
+    fn clear_dirty(&mut self) {
+        self.root.clear_dirty();
     }
 }

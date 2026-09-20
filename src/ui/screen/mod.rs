@@ -15,6 +15,14 @@ pub trait Screen {
     fn render(&mut self, renderer: &mut Renderer);
 
     fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition;
+
+    /// Forces a full repaint of this screen on the next render. Called when
+    /// the screen becomes visible again, since its previous pixels may have
+    /// been clobbered by whatever was drawn while it was hidden.
+    fn mark_dirty(&mut self) {}
+
+    /// Called once per frame after rendering to reset dirty flags.
+    fn clear_dirty(&mut self) {}
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -36,6 +36,7 @@ impl Ui {
 
         if let Some(next) = self.screens.get_mut(&self.screen) {
             next.on_enter(ctx);
+            next.mark_dirty();
         }
     }
 
@@ -53,6 +54,12 @@ impl Ui {
 
         if let Some(screen) = self.screens.get_mut(&self.screen) {
             screen.render(renderer);
+        }
+    }
+
+    pub fn clear_dirty(&mut self) {
+        if let Some(screen) = self.screens.get_mut(&self.screen) {
+            screen.clear_dirty();
         }
     }
 

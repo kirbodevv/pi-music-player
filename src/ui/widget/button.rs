@@ -25,6 +25,7 @@ pub struct Button {
     callback: Option<Box<dyn Fn(&mut Context) -> Transition>>,
 
     style: ButtonStyle,
+    dirty: bool,
 }
 
 impl Button {
@@ -37,6 +38,7 @@ impl Button {
             icon_padding: 0,
             callback: None,
             style: ButtonStyle::default(),
+            dirty: true,
         }
     }
 
@@ -235,13 +237,18 @@ impl Widget for Button {
         if let Some(label) = &mut self.label {
             label.set_bounds(rect);
         }
+
+        self.dirty = true;
     }
 
     fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition {
         match *event {
             InputEvent::PointDown { x, y } => {
                 if self.contains(x as usize, y as usize) {
-                    self.state = ButtonState::Pressed;
+                    if self.state != ButtonState::Pressed {
+                        self.state = ButtonState::Pressed;
+                        self.dirty = true;
+                    }
                     return Transition::None;
                 }
             }
@@ -249,6 +256,7 @@ impl Widget for Button {
             InputEvent::PointUp { x, y } => {
                 if self.state == ButtonState::Pressed {
                     self.state = ButtonState::Normal;
+                    self.dirty = true;
 
                     if self.contains(x as usize, y as usize) {
                         return self.invoke_callback(ctx);
@@ -262,6 +270,18 @@ impl Widget for Button {
         }
 
         Transition::None
+    }
+
+    fn is_dirty(&self) -> bool {
+        self.dirty
+    }
+
+    fn clear_dirty(&mut self) {
+        self.dirty = false;
+    }
+
+    fn mark_dirty(&mut self) {
+        self.dirty = true;
     }
 
     fn render(&self, renderer: &mut Renderer) {

@@ -71,6 +71,7 @@ impl<P: Platform> App<P> {
 
     fn render(&mut self) -> io::Result<()> {
         self.ui.render(&mut self.renderer);
+        self.ui.clear_dirty();
 
         if let Some(dirty) = self.renderer.take_dirty() {
             self.platform.present(&self.renderer, dirty)?;

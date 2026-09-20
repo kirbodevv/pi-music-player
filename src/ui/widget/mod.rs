@@ -41,4 +41,19 @@ pub trait Widget {
     fn render(&self, renderer: &mut Renderer);
 
     fn update(&mut self, _dt: Duration) {}
+
+    /// Whether this widget (or any of its children) needs to be repainted.
+    ///
+    /// Widgets that don't override this default to "always dirty", which is
+    /// the safe (if wasteful) legacy behaviour: they get redrawn every frame.
+    fn is_dirty(&self) -> bool {
+        true
+    }
+
+    /// Called once per frame after rendering to reset dirty flags.
+    fn clear_dirty(&mut self) {}
+
+    /// Forces this widget (and its children) to be considered dirty, so the
+    /// next render fully repaints it. Used e.g. when switching screens.
+    fn mark_dirty(&mut self) {}
 }

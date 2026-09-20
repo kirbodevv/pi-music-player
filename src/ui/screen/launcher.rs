@@ -35,14 +35,18 @@ impl Launcher {
          * HEADER
          */
 
+        const SCREEN_BACKGROUND: Color = Color::rgb(15, 15, 20);
+
         let title = Label::new("Main Menu")
             .with_font(&FONT_24)
-            .with_color(Color::rgb(240, 240, 245));
+            .with_color(Color::rgb(240, 240, 245))
+            .with_background(SCREEN_BACKGROUND);
 
         let status = Label::new("12:48   •   78%")
             .with_font(&FONT_16)
             .with_color(Color::rgb(150, 155, 170))
-            .with_text_align(TextAlign::Right);
+            .with_text_align(TextAlign::Right)
+            .with_background(SCREEN_BACKGROUND);
 
         let header = Container::new(Rect::default())
             .with_direction(ContainerDirection::Horizontal)
@@ -115,14 +119,18 @@ impl Launcher {
                 },
             );
 
+        const NOW_PLAYING_BACKGROUND: Color = Color::rgb(30, 30, 70);
+
         let track_title = Label::new("Нет трека")
             .with_font(&FONT_24)
-            .with_color(Color::WHITE);
+            .with_color(Color::WHITE)
+            .with_background(NOW_PLAYING_BACKGROUND);
         let now_playing_title = track_title.handle();
 
         let track_artist = Label::new("")
             .with_font(&FONT_16)
-            .with_color(Color::rgb(130, 135, 150));
+            .with_color(Color::rgb(130, 135, 150))
+            .with_background(NOW_PLAYING_BACKGROUND);
         let now_playing_artist = track_artist.handle();
 
         let cover = ImageWidget::new(Image::default());
@@ -151,7 +159,8 @@ impl Launcher {
                     .with_child(
                         Label::new("СЕЙЧАС ИГРАЕТ")
                             .with_font(&FONT_16)
-                            .with_color(Color::rgb(130, 135, 150)),
+                            .with_color(Color::rgb(130, 135, 150))
+                            .with_background(NOW_PLAYING_BACKGROUND),
                         LayoutParams {
                             width: Dimension::Fill,
                             height: Dimension::Fixed(20),
@@ -300,5 +309,13 @@ impl Screen for Launcher {
 
     fn handle_input(&mut self, event: &InputEvent, ctx: &mut Context) -> Transition {
         self.root.handle_input(event, ctx)
+    }
+
+    fn mark_dirty(&mut self) {
+        self.root.mark_dirty();
+    }
+
+    fn clear_dirty(&mut self) {
+        self.root.clear_dirty();
     }
 }

@@ -21,6 +21,9 @@ pub struct Label {
     font: &'static Font,
     text_align: TextAlign,
     vertical_align: VerticalAlign,
+    background: Option<Color>,
+    last_text: String,
+    dirty: bool,
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -48,6 +51,9 @@ impl Default for Label {
             font: DEFAULT_FONT,
             text_align: TextAlign::default(),
             vertical_align: VerticalAlign::default(),
+            background: None,
+            last_text: String::new(),
+            dirty: true,
         }
     }
 }
@@ -83,6 +89,23 @@ impl Label {
         }
     }
 
+    /// Sets an opaque background color that gets painted behind the text
+    /// every time this label redraws.
+    ///
+    /// This is required for any label that isn't immediately preceded by an
+    /// opaque fill in the same render call (e.g. plain text sitting directly
+    /// on top of a screen/container background). Without it, anti-aliased
+    /// glyph edges get alpha-blended onto whatever was already there every
+    /// time the label redraws, which - since the same edge gets blended
+    /// again and again onto its own previous result - keeps converging
+    /// towards the full glyph color until it looks blown out/oversharpened.
+    pub fn with_background(self, background: Color) -> Self {
+        Self {
+            background: Some(background),
+            ..self
+        }
+    }
+
     pub fn handle(&self) -> LabelHandle {
         Rc::clone(&self.text)
     }
@@ -103,13 +126,42 @@ impl Widget for Label {
 
     fn set_bounds(&mut self, rect: Rect) {
         self.rect = rect;
+        self.dirty = true;
     }
 
     fn handle_input(&mut self, _event: &InputEvent, _ctx: &mut Context) -> Transition {
         Transition::None
     }
 
+    fn update(&mut self, _dt: std::time::Duration) {
+        let changed = {
+            let text = self.text.borrow();
+            *text != self.last_text
+        };
+
+        if changed {
+            self.last_text = self.text.borrow().clone();
+            self.dirty = true;
+        }
+    }
+
+    fn is_dirty(&self) -> bool {
+        self.dirty
+    }
+
+    fn clear_dirty(&mut self) {
+        self.dirty = false;
+    }
+
+    fn mark_dirty(&mut self) {
+        self.dirty = true;
+    }
+
     fn render(&self, renderer: &mut Renderer) {
+        if let Some(background) = self.background {
+            renderer.fill_rect(self.rect, background);
+        }
+
         let text = self.text.borrow();
 
         let lines: Vec<&str> = text.lines().collect();
