@@ -2,6 +2,11 @@ pub mod registry;
 pub mod screen;
 pub mod widget;
 
+pub mod prelude {
+    pub use super::screen::*;
+    pub use super::widget::*;
+}
+
 use std::{collections::HashMap, time::Duration};
 
 use crate::{

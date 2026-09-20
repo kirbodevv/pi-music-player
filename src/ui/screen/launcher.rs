@@ -6,14 +6,7 @@ use crate::{
     event::InputEvent,
     music::{player::PlayerState, track::Track},
     renderer::{FONT_16, FONT_24, Icon, Image, Rect, Renderer, color::Color},
-    ui::{
-        screen::{Screen, ScreenId, Transition},
-        widget::{
-            Button, ButtonState, ButtonStyle, Container, ContainerDirection, ContainerStyle,
-            Dimension, Handle, ImageState, ImageWidget, Label, LabelState, LayoutParams, TextAlign,
-            Widget,
-        },
-    },
+    ui::prelude::*,
 };
 
 pub struct Launcher {

@@ -5,14 +5,7 @@ use crate::{
     context::Context,
     event::InputEvent,
     renderer::{FONT_16, Icon, Image, Rect, Renderer, color::Color},
-    ui::{
-        screen::{Screen, Transition},
-        widget::{
-            Button, ButtonStyle, Container, ContainerDirection, ContainerStyle, Dimension, Handle,
-            ImageState, ImageWidget, Label, LayoutParams, ProgressBar, ProgressBarHandle,
-            TextAlign, VerticalAlign, Widget,
-        },
-    },
+    ui::prelude::*,
 };
 
 const COVER_SIZE: usize = 262;
