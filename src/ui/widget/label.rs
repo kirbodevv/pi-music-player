@@ -34,6 +34,7 @@ pub struct Label {
     rect: Rect,
     text_align: TextAlign,
     vertical_align: VerticalAlign,
+    wrap: bool,
 
     state: Handle<LabelState>,
     last_version: u64,
@@ -118,6 +119,10 @@ impl Label {
         }
     }
 
+    pub fn wrap(self, wrap: bool) -> Self {
+        Self { wrap, ..self }
+    }
+
     pub fn background(self, background: Color) -> Self {
         self.state.modify(|state| {
             state.background = Some(background);
@@ -137,6 +142,10 @@ impl Label {
     }
 
     fn marquee_max_offset(&self) -> f32 {
+        if self.wrap {
+            return 0.0;
+        }
+
         let state = self.state.get();
         let lines: Vec<&str> = state.text.lines().collect();
 
@@ -271,7 +280,13 @@ impl Widget for Label {
 
         let text = state.text.as_str();
 
-        let lines: Vec<&str> = text.lines().collect();
+        let computed_lines: Vec<String> = if self.wrap {
+            wrap_text(text, state.font, self.rect.width)
+        } else {
+            text.lines().map(str::to_string).collect()
+        };
+
+        let lines: Vec<&str> = computed_lines.iter().map(String::as_str).collect();
 
         if lines.is_empty() {
             return;
@@ -321,6 +336,44 @@ impl Widget for Label {
             }
         });
     }
+}
+
+fn wrap_text(text: &str, font: &Font, max_width: usize) -> Vec<String> {
+    if text.is_empty() {
+        return Vec::new();
+    }
+
+    let mut wrapped = Vec::new();
+
+    for paragraph in text.split('\n') {
+        if paragraph.is_empty() {
+            wrapped.push(String::new());
+            continue;
+        }
+
+        let mut current = String::new();
+
+        for word in paragraph.split_whitespace() {
+            let candidate = if current.is_empty() {
+                word.to_string()
+            } else {
+                format!("{current} {word}")
+            };
+
+            let width = font.measure_line(&candidate).width;
+
+            if width > max_width && !current.is_empty() {
+                wrapped.push(std::mem::take(&mut current));
+                current = word.to_string();
+            } else {
+                current = candidate;
+            }
+        }
+
+        wrapped.push(current);
+    }
+
+    wrapped
 }
 
 pub fn label() -> Label {
