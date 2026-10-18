@@ -152,11 +152,5 @@ fn scale_image(image: DynamicImage, scale: Scale) -> DynamicImage {
         return image;
     }
 
-    /*
-     * Lanczos3 даёт чуть более чёткую картинку, но заметно дороже по CPU
-     * (особенно на слабом железе вроде Raspberry Pi). Triangle (билинейная
-     * фильтрация) для маленькой обложки выглядит почти так же, но считается
-     * в разы быстрее.
-     */
-    image.resize_exact(new_width, new_height, FilterType::Triangle)
+    image.resize_exact(new_width, new_height, FilterType::Lanczos3)
 }
