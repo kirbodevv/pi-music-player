@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{
     context::Context,
     event::InputEvent,
@@ -10,6 +12,23 @@ use crate::{
 
 const DEFAULT_FONT: &Font = &FONT_32;
 
+const MARQUEE_PAUSE: Duration = Duration::from_millis(1500);
+const MARQUEE_SPEED: f32 = 30.0;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum MarqueePhase {
+    PauseStart,
+    Forward,
+    PauseEnd,
+    Backward,
+}
+
+impl Default for MarqueePhase {
+    fn default() -> Self {
+        MarqueePhase::PauseStart
+    }
+}
+
 #[derive(Default)]
 pub struct Label {
     rect: Rect,
@@ -19,6 +38,10 @@ pub struct Label {
     state: Handle<LabelState>,
     last_version: u64,
     dirty: bool,
+
+    marquee_offset: f32,
+    marquee_phase: MarqueePhase,
+    marquee_timer: Duration,
 }
 
 pub struct LabelState {
@@ -106,6 +129,85 @@ impl Label {
     pub fn handle(&self) -> Handle<LabelState> {
         self.state.clone()
     }
+
+    fn reset_marquee(&mut self) {
+        self.marquee_offset = 0.0;
+        self.marquee_phase = MarqueePhase::PauseStart;
+        self.marquee_timer = Duration::ZERO;
+    }
+
+    fn marquee_max_offset(&self) -> f32 {
+        let state = self.state.get();
+        let lines: Vec<&str> = state.text.lines().collect();
+
+        if lines.len() != 1 {
+            return 0.0;
+        }
+
+        let line_width = state.font.measure_line(lines[0]).width as f32;
+        let available = self.rect.width as f32;
+
+        (line_width - available).max(0.0)
+    }
+
+    fn advance_marquee(&mut self, dt: Duration) -> bool {
+        let max_offset = self.marquee_max_offset();
+
+        if max_offset <= 0.0 {
+            let was_active =
+                self.marquee_offset != 0.0 || self.marquee_phase != MarqueePhase::PauseStart;
+            self.reset_marquee();
+            return was_active;
+        }
+
+        match self.marquee_phase {
+            MarqueePhase::PauseStart => {
+                self.marquee_timer += dt;
+
+                if self.marquee_timer >= MARQUEE_PAUSE {
+                    self.marquee_timer = Duration::ZERO;
+                    self.marquee_phase = MarqueePhase::Forward;
+                }
+
+                false
+            }
+
+            MarqueePhase::Forward => {
+                self.marquee_offset += MARQUEE_SPEED * dt.as_secs_f32();
+
+                if self.marquee_offset >= max_offset {
+                    self.marquee_offset = max_offset;
+                    self.marquee_phase = MarqueePhase::PauseEnd;
+                    self.marquee_timer = Duration::ZERO;
+                }
+
+                true
+            }
+
+            MarqueePhase::PauseEnd => {
+                self.marquee_timer += dt;
+
+                if self.marquee_timer >= MARQUEE_PAUSE {
+                    self.marquee_timer = Duration::ZERO;
+                    self.marquee_phase = MarqueePhase::Backward;
+                }
+
+                false
+            }
+
+            MarqueePhase::Backward => {
+                self.marquee_offset -= MARQUEE_SPEED * dt.as_secs_f32();
+
+                if self.marquee_offset <= 0.0 {
+                    self.marquee_offset = 0.0;
+                    self.marquee_phase = MarqueePhase::PauseStart;
+                    self.marquee_timer = Duration::ZERO;
+                }
+
+                true
+            }
+        }
+    }
 }
 
 impl Widget for Label {
@@ -123,6 +225,10 @@ impl Widget for Label {
     }
 
     fn set_bounds(&mut self, rect: Rect) {
+        if rect.width != self.rect.width {
+            self.reset_marquee();
+        }
+
         self.rect = rect;
         self.dirty = true;
     }
@@ -131,11 +237,16 @@ impl Widget for Label {
         Transition::None
     }
 
-    fn update(&mut self, _dt: std::time::Duration) {
+    fn update(&mut self, dt: Duration) {
         let version = self.state.version();
 
         if version != self.last_version {
             self.last_version = version;
+            self.dirty = true;
+            self.reset_marquee();
+        }
+
+        if self.advance_marquee(dt) {
             self.dirty = true;
         }
     }
@@ -178,25 +289,37 @@ impl Widget for Label {
             VerticalAlign::Bottom => self.rect.y + self.rect.height.saturating_sub(total_height),
         };
 
-        for (index, line) in lines.iter().enumerate() {
-            let line_size = state.font.measure_line(line);
+        let marquee_active = self.marquee_max_offset() > 0.0;
 
-            let x = match self.text_align {
-                TextAlign::Left => self.rect.x,
+        let rect = self.rect;
 
-                TextAlign::Center => {
-                    self.rect.x + self.rect.width.saturating_sub(line_size.width) / 2
-                }
+        renderer.with_clip(rect, |renderer| {
+            for (index, line) in lines.iter().enumerate() {
+                let line_size = state.font.measure_line(line);
 
-                TextAlign::Right => self.rect.x + self.rect.width.saturating_sub(line_size.width),
-            };
+                let x: i32 = if marquee_active {
+                    rect.x as i32 - self.marquee_offset.round() as i32
+                } else {
+                    match self.text_align {
+                        TextAlign::Left => rect.x as i32,
 
-            let y = start_y + index * line_height;
+                        TextAlign::Center => {
+                            (rect.x + rect.width.saturating_sub(line_size.width) / 2) as i32
+                        }
 
-            const TEXT_VERTICAL_OFFSET: i32 = 2;
-            let baseline = (y + line_size.height) as i32 + TEXT_VERTICAL_OFFSET;
-            renderer.draw_text(x, baseline as usize, line, state.font, state.color);
-        }
+                        TextAlign::Right => {
+                            (rect.x + rect.width.saturating_sub(line_size.width)) as i32
+                        }
+                    }
+                };
+
+                let y = start_y + index * line_height;
+
+                const TEXT_VERTICAL_OFFSET: i32 = 2;
+                let baseline = (y + line_size.height) as i32 + TEXT_VERTICAL_OFFSET;
+                renderer.draw_text_signed(x, baseline as usize, line, state.font, state.color);
+            }
+        });
     }
 }
 

@@ -42,6 +42,10 @@ impl Renderer {
     }
 
     pub fn draw_text(&mut self, x: usize, y: usize, text: &str, font: &Font, color: Color) {
+        self.draw_text_signed(x as i32, y, text, font, color);
+    }
+
+    pub fn draw_text_signed(&mut self, x: i32, y: usize, text: &str, font: &Font, color: Color) {
         let mut cursor_x = x;
 
         for ch in text.chars() {
@@ -49,9 +53,9 @@ impl Renderer {
                 continue;
             };
 
-            self.draw_glyph(cursor_x as i32, y as i32, glyph, color);
+            self.draw_glyph(cursor_x, y as i32, glyph, color);
 
-            cursor_x += glyph.advance.round() as usize;
+            cursor_x += glyph.advance.round() as i32;
         }
     }
 }
