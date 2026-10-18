@@ -3,7 +3,7 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 use std::thread;
 
 use crate::renderer::{
-    Image, Scale,
+    Image,
     color::{Color, normalize_hue},
 };
 
@@ -145,22 +145,21 @@ fn artwork_loader_loop(request_rx: Receiver<ArtworkKey>, result_tx: Sender<(Artw
 }
 
 fn load_artwork(track_path: &Path, size: u32) -> Artwork {
-    let cover_path = track_path.parent().map(|dir| dir.join("cover.jpg"));
+    let album_dir = track_path.parent();
 
-    let image = match cover_path {
-        Some(cover_path) => match Image::load(
-            &cover_path,
-            Scale::Exact {
-                width: size,
-                height: size,
-            },
-        ) {
-            Ok(image) => image,
-            Err(error) => {
-                println!("Can't load cover for {}: {}", track_path.display(), error);
-                Image::default()
+    let image = match album_dir {
+        Some(album_dir) => {
+            let cover_path = album_dir.join("cover.jpg");
+            let cache_path = album_dir.join("cover").join(format!("{size}.jpg"));
+
+            match Image::load_with_thumbnail_cache(&cover_path, &cache_path, size) {
+                Ok(image) => image,
+                Err(error) => {
+                    println!("Can't load cover for {}: {}", track_path.display(), error);
+                    Image::default()
+                }
             }
-        },
+        }
         None => Image::default(),
     };
 

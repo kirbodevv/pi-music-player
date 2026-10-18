@@ -1,4 +1,4 @@
-use std::{fs, io, path::Path};
+use std::{fs, io, path::Path, time::SystemTime};
 
 use image::{DynamicImage, GenericImageView, imageops::FilterType};
 
@@ -50,8 +50,80 @@ impl Image {
         Ok(Self::from_rgba8(rgba))
     }
 
+    pub fn load_with_thumbnail_cache(
+        source: &Path,
+        cache_path: &Path,
+        size: u32,
+    ) -> io::Result<Self> {
+        if thumbnail_cache_is_fresh(source, cache_path) {
+            match Self::load(
+                cache_path,
+                Scale::Exact {
+                    width: size,
+                    height: size,
+                },
+            ) {
+                Ok(image) => return Ok(image),
+                Err(_) => {
+                    // Cache file is missing/corrupt; fall through and regenerate it.
+                }
+            }
+        }
+
+        let data = fs::read(source)?;
+
+        let image = image::load_from_memory(&data)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+
+        let resized = scale_image(
+            image,
+            Scale::Exact {
+                width: size,
+                height: size,
+            },
+        );
+
+        save_thumbnail(&resized, cache_path);
+
+        let rgba = resized.to_rgba8();
+
+        Ok(Self::from_rgba8(rgba))
+    }
+
     pub fn dimensions(&self) -> (usize, usize) {
         (self.width, self.height)
+    }
+}
+
+fn thumbnail_cache_is_fresh(source: &Path, cache_path: &Path) -> bool {
+    let (Ok(source_meta), Ok(cache_meta)) = (fs::metadata(source), fs::metadata(cache_path)) else {
+        return false;
+    };
+
+    let source_modified = source_meta.modified().unwrap_or(SystemTime::UNIX_EPOCH);
+    let cache_modified = cache_meta.modified().unwrap_or(SystemTime::UNIX_EPOCH);
+
+    cache_modified >= source_modified
+}
+
+fn save_thumbnail(image: &DynamicImage, cache_path: &Path) {
+    if let Some(parent) = cache_path.parent() {
+        if let Err(error) = fs::create_dir_all(parent) {
+            println!(
+                "Can't create thumbnail cache dir {}: {}",
+                parent.display(),
+                error
+            );
+            return;
+        }
+    }
+
+    if let Err(error) = image.to_rgb8().save(cache_path) {
+        println!(
+            "Can't write thumbnail cache {}: {}",
+            cache_path.display(),
+            error
+        );
     }
 }
 
