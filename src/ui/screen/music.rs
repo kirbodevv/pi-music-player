@@ -186,6 +186,20 @@ impl MusicScreen {
         }
     }
 
+    fn apply_artwork(&mut self, artwork: Artwork) {
+        self.cover.modify(|state| state.image = artwork.image);
+        self.background
+            .modify(|state| state.style.background = Some(artwork.theme.dark));
+        self.now_playing_artist.modify(|state| {
+            state.background = Some(artwork.theme.dark);
+            state.color = artwork.theme.light;
+        });
+        self.now_playing_title.modify(|state| {
+            state.background = Some(artwork.theme.dark);
+            state.color = artwork.theme.light;
+        });
+    }
+
     fn set_play_pause_button_icon(&self, state: PlayerState) {
         let icon = match state {
             PlayerState::Playing => Icon::Pause,
@@ -207,28 +221,23 @@ impl Screen for MusicScreen {
         if path != self.displayed_track_path {
             self.displayed_track_path = path.clone();
 
-            let artwork = match &path {
-                Some(path) => ctx.artwork.cover_for(path, COVER_SIZE as u32),
-                None => Artwork {
-                    image: Image::default(),
-                    theme: ArtworkTheme::default(),
-                },
-            };
-
             let track = ctx.music.current_track().cloned();
             self.set_track_labels(track.as_ref());
-            self.cover.modify(|state| state.image = artwork.image);
-            self.background
-                .modify(|state| state.style.background = Some(artwork.theme.dark));
-            self.now_playing_artist.modify(|state| {
-                state.background = Some(artwork.theme.dark);
-                state.color = artwork.theme.light;
-            });
-            self.now_playing_title.modify(|state| {
-                state.background = Some(artwork.theme.dark);
-                state.color = artwork.theme.light;
-            });
+
+            if path.is_none() {
+                self.apply_artwork(Artwork {
+                    image: Image::default(),
+                    theme: ArtworkTheme::default(),
+                });
+            }
         }
+
+        if let Some(path) = &path {
+            if let Some(artwork) = ctx.artwork.poll_cover(path, COVER_SIZE as u32) {
+                self.apply_artwork(artwork);
+            }
+        }
+
         let position = ctx.music.current_position();
         let duration = ctx.music.current_duration();
 

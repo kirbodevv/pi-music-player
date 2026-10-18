@@ -1,4 +1,6 @@
 use std::path::{Path, PathBuf};
+use std::sync::mpsc::{Receiver, Sender, channel};
+use std::thread;
 
 use crate::renderer::{
     Image, Scale,
@@ -24,8 +26,14 @@ impl Default for ArtworkTheme {
     }
 }
 
+type ArtworkKey = (PathBuf, u32);
+
 pub struct ArtworkService {
     cached: Option<(PathBuf, u32, Artwork)>,
+    pending: Option<ArtworkKey>,
+    delivered: Option<ArtworkKey>,
+    request_tx: Sender<ArtworkKey>,
+    result_rx: Receiver<(ArtworkKey, Artwork)>,
 }
 
 #[derive(Debug, Clone)]
@@ -36,10 +44,27 @@ pub struct Artwork {
 
 impl ArtworkService {
     pub fn new() -> Self {
-        Self { cached: None }
+        let (request_tx, request_rx) = channel::<ArtworkKey>();
+        let (result_tx, result_rx) = channel::<(ArtworkKey, Artwork)>();
+
+        thread::Builder::new()
+            .name("artwork-loader".to_string())
+            .spawn(move || artwork_loader_loop(request_rx, result_tx))
+            .expect("failed to spawn artwork loader thread");
+
+        Self {
+            cached: None,
+            pending: None,
+            delivered: None,
+            request_tx,
+            result_rx,
+        }
     }
 
     pub fn cover_for(&mut self, track_path: &Path, size: u32) -> Artwork {
+        self.drain_results();
+
+        let key = (track_path.to_path_buf(), size);
         let up_to_date = self
             .cached
             .as_ref()
@@ -48,31 +73,100 @@ impl ArtworkService {
             });
 
         if !up_to_date {
-            let cover_path = track_path.parent().map(|dir| dir.join("cover.jpg"));
-
-            let image = match cover_path {
-                Some(cover_path) => match Image::load(
-                    &cover_path,
-                    Scale::Exact {
-                        width: size,
-                        height: size,
-                    },
-                ) {
-                    Ok(image) => image,
-                    Err(error) => {
-                        println!("Can't load cover for {}: {}", track_path.display(), error);
-                        Image::default()
-                    }
-                },
-                None => Image::default(),
-            };
-            let theme = theme_from_image(&image);
-            self.cached = Some((track_path.to_path_buf(), size, Artwork { image, theme }));
+            self.request(key);
         }
 
-        let (_, _, artwork) = self.cached.as_ref().unwrap();
-        artwork.clone()
+        match &self.cached {
+            Some((_, _, artwork)) => artwork.clone(),
+            None => Artwork {
+                image: Image::default(),
+                theme: ArtworkTheme::default(),
+            },
+        }
     }
+
+    pub fn poll_cover(&mut self, track_path: &Path, size: u32) -> Option<Artwork> {
+        self.drain_results();
+
+        let key = (track_path.to_path_buf(), size);
+        let up_to_date = self
+            .cached
+            .as_ref()
+            .is_some_and(|(cached_path, cached_size, _)| {
+                cached_path == track_path && *cached_size == size
+            });
+
+        if !up_to_date {
+            self.request(key);
+            return None;
+        }
+
+        if self.delivered.as_ref() == Some(&key) {
+            return None;
+        }
+
+        self.delivered = Some(key);
+        self.cached.as_ref().map(|(_, _, artwork)| artwork.clone())
+    }
+
+    fn request(&mut self, key: ArtworkKey) {
+        let already_pending = self.pending.as_ref() == Some(&key);
+
+        if !already_pending {
+            self.pending = Some(key.clone());
+            let _ = self.request_tx.send(key);
+        }
+    }
+
+    fn drain_results(&mut self) {
+        while let Ok((key, artwork)) = self.result_rx.try_recv() {
+            if self.pending.as_ref() == Some(&key) {
+                self.pending = None;
+            }
+
+            let (path, size) = key;
+            self.cached = Some((path, size, artwork));
+        }
+    }
+}
+
+fn artwork_loader_loop(request_rx: Receiver<ArtworkKey>, result_tx: Sender<(ArtworkKey, Artwork)>) {
+    while let Ok(mut key) = request_rx.recv() {
+        while let Ok(newer_key) = request_rx.try_recv() {
+            key = newer_key;
+        }
+
+        let artwork = load_artwork(&key.0, key.1);
+
+        if result_tx.send((key, artwork)).is_err() {
+            break;
+        }
+    }
+}
+
+fn load_artwork(track_path: &Path, size: u32) -> Artwork {
+    let cover_path = track_path.parent().map(|dir| dir.join("cover.jpg"));
+
+    let image = match cover_path {
+        Some(cover_path) => match Image::load(
+            &cover_path,
+            Scale::Exact {
+                width: size,
+                height: size,
+            },
+        ) {
+            Ok(image) => image,
+            Err(error) => {
+                println!("Can't load cover for {}: {}", track_path.display(), error);
+                Image::default()
+            }
+        },
+        None => Image::default(),
+    };
+
+    let theme = theme_from_image(&image);
+
+    Artwork { image, theme }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -88,11 +182,7 @@ struct ColorCluster {
     hue: f32,
     saturation: f32,
     value: f32,
-
-    /// Доля изображения, которую занимает этот кластер.
     coverage: f32,
-
-    /// Вес цвета с учётом saturation/value.
     weight: f32,
 }
 
@@ -135,12 +225,6 @@ fn theme_from_image(image: &Image) -> ArtworkTheme {
 fn collect_samples(image: &Image) -> Vec<ColorSample> {
     let mut samples = Vec::new();
 
-    /*
-     * Нам не нужен каждый пиксель.
-     *
-     * Для cover 150x150 это всего 5625 пикселей,
-     * но step=3 уже достаточно хорошо описывает картинку.
-     */
     let step = 3;
 
     for y in (0..image.height).step_by(step) {
@@ -155,33 +239,16 @@ fn collect_samples(image: &Image) -> Vec<ColorSample> {
 
             let (hue, saturation, value) = color.to_hsv();
 
-            /*
-             * Чёрные пиксели не помогают определить hue.
-             */
             if value < 0.025 {
                 continue;
             }
 
-            /*
-             * Очень слабые цвета тоже практически бесполезны
-             * для определения атмосферы.
-             */
             if saturation < 0.035 {
                 continue;
             }
 
-            /*
-             * Чем насыщеннее цвет, тем сильнее он влияет.
-             *
-             * При этом не позволяем saturation полностью
-             * доминировать над количеством пикселей.
-             */
             let saturation_weight = smoothstep(0.035, 0.35, saturation);
 
-            /*
-             * Слишком тёмные цвета не должны иметь большой вес,
-             * но полностью их исключать тоже не хочется.
-             */
             let brightness_weight = 0.35 + value * 0.65;
 
             let weight = saturation_weight * brightness_weight;
@@ -203,11 +270,6 @@ fn collect_samples(image: &Image) -> Vec<ColorSample> {
 // -----------------------------------------------------------------------------
 
 fn build_clusters(samples: &[ColorSample]) -> Vec<ColorCluster> {
-    /*
-     * Делим hue на 36 сегментов по 10 градусов.
-     *
-     * Это намного дешевле K-means и для cover работает отлично.
-     */
     const HUE_BUCKETS: usize = 36;
 
     let mut hue_weight = [0.0f32; HUE_BUCKETS];
@@ -239,15 +301,6 @@ fn build_clusters(samples: &[ColorSample]) -> Vec<ColorCluster> {
         return Vec::new();
     }
 
-    /*
-     * Объединяем соседние hue buckets.
-     *
-     * Например:
-     *
-     * 350° + 0° + 10°
-     *
-     * должны считаться одним красным кластером.
-     */
     let mut merged = Vec::new();
 
     let mut visited = [false; HUE_BUCKETS];

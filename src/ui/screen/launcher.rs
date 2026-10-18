@@ -117,15 +117,18 @@ impl Screen for Launcher {
         if path != self.displayed_track_path {
             self.displayed_track_path = path.clone();
 
-            let image = match &path {
-                Some(path) => {
-                    ctx.artwork
-                        .cover_for(path, crate::artwork::DEFAULT_COVER_SIZE)
-                        .image
-                }
-                None => Image::default(),
-            };
-            self.cover.modify(|state| state.image = image);
+            if path.is_none() {
+                self.cover.modify(|state| state.image = Image::default());
+            }
+        }
+
+        if let Some(path) = &path {
+            if let Some(artwork) = ctx
+                .artwork
+                .poll_cover(path, crate::artwork::DEFAULT_COVER_SIZE)
+            {
+                self.cover.modify(|state| state.image = artwork.image);
+            }
         }
     }
 
