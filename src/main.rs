@@ -2,6 +2,7 @@ pub mod app;
 pub mod artwork;
 pub mod context;
 pub mod event;
+pub mod lyrics;
 pub mod music;
 pub mod platform;
 pub mod renderer;

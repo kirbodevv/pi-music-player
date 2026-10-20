@@ -5,6 +5,7 @@ use crate::{
     artwork::{Artwork, ArtworkTheme},
     context::Context,
     event::InputEvent,
+    lyrics::Lyrics,
     music::{player::PlayerState, track::Track},
     renderer::{FONT_16, FONT_24, Icon, Image, Rect, Renderer, color::Color},
     ui::{
@@ -23,7 +24,10 @@ pub struct MusicScreen {
     play_pause_button: Handle<ButtonState>,
     background: Handle<ContainerState>,
     cover: Handle<ImageState>,
+    lyrics_label: Handle<LabelState>,
     displayed_track_path: Option<PathBuf>,
+    lyrics: Lyrics,
+    displayed_lyric_line: Option<String>,
 }
 
 impl MusicScreen {
@@ -69,6 +73,15 @@ impl MusicScreen {
 
         let cover = image().radius(8);
         let cover_handle = cover.handle();
+
+        let lyrics_line = label()
+            .font(&FONT_16)
+            .color(Color::rgb(170, 175, 190))
+            .text_align(TextAlign::Left)
+            .vertical_align(VerticalAlign::Top)
+            .wrap(true)
+            .background(Color::rgb(30, 30, 70));
+        let lyrics_label = lyrics_line.handle();
 
         let progress_bar = progress_bar().min(0.).max(1.);
         let progress_bar_handle = progress_bar.handle();
@@ -119,7 +132,7 @@ impl MusicScreen {
             .direction(ContainerDirection::Vertical)
             .spacing(8)
             .with_child(track_info, layout(Fill, Fixed(62)))
-            .with_child(container(), layout(Fill, Fixed(98)))
+            .with_child(lyrics_line, layout(Fill, Fixed(98)))
             .with_child(
                 container()
                     .direction(ContainerDirection::Horizontal)
@@ -155,7 +168,10 @@ impl MusicScreen {
             now_playing_title,
             play_pause_button,
             background: background_handle,
+            lyrics_label,
             displayed_track_path: None,
+            lyrics: Lyrics::default(),
+            displayed_lyric_line: None,
         }
     }
 
@@ -198,6 +214,21 @@ impl MusicScreen {
             state.background = Some(artwork.theme.dark);
             state.color = artwork.theme.light;
         });
+        self.lyrics_label.modify(|state| {
+            state.background = Some(artwork.theme.dark);
+            state.color = artwork.theme.light;
+        });
+    }
+
+    fn set_lyrics_line(&mut self, line: Option<&str>) {
+        if self.displayed_lyric_line.as_deref() == line {
+            return;
+        }
+
+        self.displayed_lyric_line = line.map(str::to_string);
+
+        let text = line.unwrap_or("").to_string();
+        self.lyrics_label.modify(|state| state.text = text);
     }
 
     fn set_play_pause_button_icon(&self, state: PlayerState) {
@@ -224,6 +255,12 @@ impl Screen for MusicScreen {
             let track = ctx.music.current_track().cloned();
             self.set_track_labels(track.as_ref());
 
+            self.lyrics = path
+                .as_deref()
+                .and_then(Lyrics::load_for_track)
+                .unwrap_or_default();
+            self.set_lyrics_line(None);
+
             if path.is_none() {
                 self.apply_artwork(Artwork {
                     image: Image::default(),
@@ -240,6 +277,11 @@ impl Screen for MusicScreen {
 
         let position = ctx.music.current_position();
         let duration = ctx.music.current_duration();
+
+        if !self.lyrics.is_empty() {
+            let line = self.lyrics.line_at(position).map(str::to_string);
+            self.set_lyrics_line(line.as_deref());
+        }
 
         self.set_play_pause_button_icon(ctx.music.state());
         self.set_progress_bar(position, duration);
